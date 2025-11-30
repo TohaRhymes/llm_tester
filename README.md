@@ -30,20 +30,28 @@ Open: http://localhost:8000 (Web UI) or http://localhost:8000/docs (API)
 
 **API:**
 ```bash
-# Generate exam
+# Generate exam with open-ended questions
 curl -X POST http://localhost:8000/api/generate \
   -H "Content-Type: application/json" \
   -d '{
     "markdown_content": "# Topic\n## Section\nContent here...",
-    "config": {"total_questions": 5}
+    "config": {
+      "total_questions": 10,
+      "single_choice_ratio": 0.5,
+      "multiple_choice_ratio": 0.3,
+      "open_ended_ratio": 0.2
+    }
   }'
 
-# Grade answers
+# Grade answers (choice + text)
 curl -X POST http://localhost:8000/api/grade \
   -H "Content-Type: application/json" \
   -d '{
     "exam_id": "ex-abc123",
-    "answers": [{"question_id": "q-001", "choice": [1]}]
+    "answers": [
+      {"question_id": "q-001", "choice": [1]},
+      {"question_id": "q-002", "text_answer": "Preeclampsia involves endothelial dysfunction..."}
+    ]
   }'
 ```
 
