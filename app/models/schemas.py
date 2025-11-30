@@ -32,18 +32,27 @@ class Question(BaseModel):
 
     For single_choice: correct contains exactly one index.
     For multiple_choice: correct contains one or more indices.
+    For open_ended: options/correct are None, reference_answer and rubric are used.
     """
     id: str = Field(..., description="Unique question identifier")
-    type: Literal["single_choice", "multiple_choice"] = Field(..., description="Question type")
+    type: Literal["single_choice", "multiple_choice", "open_ended"] = Field(..., description="Question type")
     stem: str = Field(..., min_length=1, description="Question text")
-    options: List[str] = Field(..., min_length=2, description="Answer options")
-    correct: List[int] = Field(..., min_length=1, description="Indices of correct answers")
+    options: Optional[List[str]] = Field(None, description="Answer options (not used for open_ended)")
+    correct: Optional[List[int]] = Field(None, description="Indices of correct answers (not used for open_ended)")
+    reference_answer: Optional[str] = Field(None, description="Reference answer for open_ended questions")
+    rubric: Optional[List[str]] = Field(None, description="Grading criteria for open_ended questions")
     source_refs: List[SourceReference] = Field(default_factory=list, description="Source material references")
     meta: QuestionMeta = Field(default_factory=QuestionMeta, description="Question metadata")
 
     @field_validator('options')
     @classmethod
-    def validate_options(cls, v: List[str]) -> List[str]:
+    def validate_options(cls, v: Optional[List[str]], info) -> Optional[List[str]]:
+        if 'type' in info.data and info.data['type'] == 'open_ended':
+            return None  # open_ended doesn't use options
+
+        if v is None:
+            raise ValueError('options required for single_choice and multiple_choice')
+
         if any(not opt.strip() for opt in v):
             raise ValueError('All options must be non-empty')
         if len(v) < 2:
@@ -54,9 +63,12 @@ class Question(BaseModel):
 
     @field_validator('correct')
     @classmethod
-    def validate_correct_indices(cls, v: List[int], info) -> List[int]:
-        if not v:
-            raise ValueError('Must have at least one correct answer')
+    def validate_correct_indices(cls, v: Optional[List[int]], info) -> Optional[List[int]]:
+        if 'type' in info.data and info.data['type'] == 'open_ended':
+            return None  # open_ended doesn't use correct indices
+
+        if v is None or not v:
+            raise ValueError('Must have at least one correct answer for single/multiple choice')
 
         if 'type' in info.data:
             question_type = info.data['type']
@@ -65,7 +77,7 @@ class Question(BaseModel):
             if question_type == 'multiple_choice' and len(v) < 1:
                 raise ValueError('multiple_choice must have at least one correct answer')
 
-        if 'options' in info.data:
+        if 'options' in info.data and info.data['options'] is not None:
             options = info.data['options']
             for idx in v:
                 if idx < 0 or idx >= len(options):
@@ -73,20 +85,29 @@ class Question(BaseModel):
 
         return v
 
+    @field_validator('reference_answer')
+    @classmethod
+    def validate_reference_answer(cls, v: Optional[str], info) -> Optional[str]:
+        if 'type' in info.data and info.data['type'] == 'open_ended':
+            if not v or not v.strip():
+                raise ValueError('reference_answer required for open_ended questions')
+        return v
+
 
 class ExamConfig(BaseModel):
     """Configuration used to generate an exam."""
     total_questions: int = Field(20, ge=1, le=100, description="Number of questions to generate")
-    single_choice_ratio: float = Field(0.7, ge=0.0, le=1.0, description="Ratio of single choice questions")
+    single_choice_ratio: float = Field(0.5, ge=0.0, le=1.0, description="Ratio of single choice questions")
     multiple_choice_ratio: float = Field(0.3, ge=0.0, le=1.0, description="Ratio of multiple choice questions")
+    open_ended_ratio: float = Field(0.2, ge=0.0, le=1.0, description="Ratio of open-ended questions")
     difficulty: Literal["easy", "medium", "hard", "mixed"] = Field("mixed", description="Question difficulty")
     seed: Optional[int] = Field(None, description="Random seed for reproducibility")
 
-    @field_validator('multiple_choice_ratio')
+    @field_validator('open_ended_ratio')
     @classmethod
     def validate_ratios_sum(cls, v: float, info) -> float:
-        if 'single_choice_ratio' in info.data:
-            total = info.data['single_choice_ratio'] + v
+        if 'single_choice_ratio' in info.data and 'multiple_choice_ratio' in info.data:
+            total = info.data['single_choice_ratio'] + info.data['multiple_choice_ratio'] + v
             if abs(total - 1.0) > 0.01:  # Allow small floating point errors
                 raise ValueError(f'Ratios must sum to 1.0, got {total}')
         return v
@@ -110,7 +131,17 @@ class Exam(BaseModel):
 class StudentAnswer(BaseModel):
     """Student's answer to a question."""
     question_id: str = Field(..., description="Question identifier")
-    choice: List[int] = Field(..., min_length=1, description="Selected answer indices")
+    choice: Optional[List[int]] = Field(None, description="Selected answer indices (for single/multiple choice)")
+    text_answer: Optional[str] = Field(None, description="Text answer (for open_ended)")
+
+    @field_validator('text_answer')
+    @classmethod
+    def validate_answer_present(cls, v: Optional[str], info) -> Optional[str]:
+        # At least one of choice or text_answer must be present
+        if 'choice' not in info.data or info.data['choice'] is None:
+            if v is None or not v.strip():
+                raise ValueError('Either choice or text_answer must be provided')
+        return v
 
 
 class GradeRequest(BaseModel):
@@ -123,9 +154,11 @@ class QuestionResult(BaseModel):
     """Grading result for a single question."""
     question_id: str = Field(..., description="Question identifier")
     is_correct: bool = Field(..., description="Whether answer is correct")
-    expected: List[int] = Field(..., description="Expected correct indices")
-    given: List[int] = Field(..., description="Student's answer indices")
+    expected: Optional[List[int]] = Field(None, description="Expected correct indices (for choice questions)")
+    given: Optional[List[int]] = Field(None, description="Student's answer indices (for choice questions)")
+    given_text: Optional[str] = Field(None, description="Student's text answer (for open_ended)")
     partial_credit: float = Field(0.0, ge=0.0, le=1.0, description="Partial credit (0.0-1.0)")
+    feedback: Optional[str] = Field(None, description="Detailed feedback (for open_ended)")
 
 
 class GradeSummary(BaseModel):

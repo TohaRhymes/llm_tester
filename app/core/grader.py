@@ -1,15 +1,20 @@
 """
 Answer grading module for automated exam checking.
 """
-from typing import List, Dict
+from typing import List, Dict, Optional
 from app.models.schemas import (
     Exam, GradeRequest, GradeResponse,
-    QuestionResult, GradeSummary, Question
+    QuestionResult, GradeSummary, Question, StudentAnswer
 )
+from app.services.openai_client import OpenAIClient
 
 
 class Grader:
     """Handles grading of student answers against exam answer keys."""
+
+    def __init__(self):
+        """Initialize grader with OpenAI client for open-ended grading."""
+        self.openai_client = OpenAIClient()
 
     def grade(
         self,
@@ -48,11 +53,17 @@ class Grader:
 
         for student_answer in request.answers:
             question = questions_map[student_answer.question_id]
-            result = self._grade_question(
-                question,
-                student_answer.choice,
-                partial_credit
-            )
+
+            # Grade based on question type
+            if question.type == "open_ended":
+                result = self._grade_open_ended_question(question, student_answer)
+            else:
+                result = self._grade_choice_question(
+                    question,
+                    student_answer.choice,
+                    partial_credit
+                )
+
             results.append(result)
             total_credit += result.partial_credit
 
@@ -73,14 +84,14 @@ class Grader:
             per_question=results
         )
 
-    def _grade_question(
+    def _grade_choice_question(
         self,
         question: Question,
         given: List[int],
         partial_credit: bool
     ) -> QuestionResult:
         """
-        Grade a single question.
+        Grade a single choice or multiple choice question.
 
         Args:
             question: The question being graded
@@ -119,8 +130,71 @@ class Grader:
             is_correct=is_correct,
             expected=expected,
             given=given,
-            partial_credit=round(credit, 4)
+            given_text=None,
+            partial_credit=round(credit, 4),
+            feedback=None
         )
+
+    def _grade_open_ended_question(
+        self,
+        question: Question,
+        student_answer: StudentAnswer
+    ) -> QuestionResult:
+        """
+        Grade an open-ended question using AI.
+
+        Args:
+            question: The open-ended question
+            student_answer: Student's text response
+
+        Returns:
+            QuestionResult with AI grading and feedback
+        """
+        if not student_answer.text_answer:
+            # No answer provided
+            return QuestionResult(
+                question_id=question.id,
+                is_correct=False,
+                expected=None,
+                given=None,
+                given_text="",
+                partial_credit=0.0,
+                feedback="No answer provided."
+            )
+
+        try:
+            # Use OpenAI to grade the answer
+            grading_result = self.openai_client.grade_open_ended(
+                question_stem=question.stem,
+                reference_answer=question.reference_answer,
+                rubric=question.rubric,
+                student_answer=student_answer.text_answer
+            )
+
+            # Determine if "correct" (>= 0.7 score)
+            is_correct = grading_result["score"] >= 0.7
+
+            return QuestionResult(
+                question_id=question.id,
+                is_correct=is_correct,
+                expected=None,
+                given=None,
+                given_text=student_answer.text_answer,
+                partial_credit=round(grading_result["score"], 4),
+                feedback=grading_result["feedback"]
+            )
+
+        except Exception as e:
+            # Fallback if AI grading fails
+            return QuestionResult(
+                question_id=question.id,
+                is_correct=False,
+                expected=None,
+                given=None,
+                given_text=student_answer.text_answer,
+                partial_credit=0.0,
+                feedback=f"Grading failed: {str(e)}"
+            )
 
     def calculate_partial_credit(
         self,

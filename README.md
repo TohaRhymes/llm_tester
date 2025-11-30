@@ -1,6 +1,6 @@
 # LLM Test Generator
 
-AI-powered test generation system for educational materials. Generate and grade multiple-choice exams from Markdown content using OpenAI.
+AI-powered test generation system for educational materials. Generate and grade exams (single-choice, multiple-choice, and open-ended questions) from Markdown content using OpenAI.
 
 ## Quick Start
 
@@ -30,28 +30,37 @@ Open: http://localhost:8000 (Web UI) or http://localhost:8000/docs (API)
 
 **API:**
 ```bash
-# Generate exam
+# Generate exam with open-ended questions
 curl -X POST http://localhost:8000/api/generate \
   -H "Content-Type: application/json" \
   -d '{
     "markdown_content": "# Topic\n## Section\nContent here...",
-    "config": {"total_questions": 5}
+    "config": {
+      "total_questions": 10,
+      "single_choice_ratio": 0.5,
+      "multiple_choice_ratio": 0.3,
+      "open_ended_ratio": 0.2
+    }
   }'
 
-# Grade answers
+# Grade answers (choice + text)
 curl -X POST http://localhost:8000/api/grade \
   -H "Content-Type: application/json" \
   -d '{
     "exam_id": "ex-abc123",
-    "answers": [{"question_id": "q-001", "choice": [1]}]
+    "answers": [
+      {"question_id": "q-001", "choice": [1]},
+      {"question_id": "q-002", "text_answer": "Preeclampsia involves endothelial dysfunction..."}
+    ]
   }'
 ```
 
 ## Features
 
-- **Question Generation**: Single-choice and multiple-choice questions from Markdown
-- **Automated Grading**: With partial credit support for multiple-choice
+- **Question Generation**: Single-choice, multiple-choice, and open-ended questions from Markdown
+- **Automated Grading**: With partial credit support and AI-powered open-ended grading
 - **Source Traceability**: Every question links to source material
+- **AI Feedback**: Detailed rubric-based feedback for open-ended responses
 - **Medical Focus**: Optimized for medical education content
 - **Web UI**: Complete workflow from upload to grading
 - **REST API**: Full Swagger documentation at `/docs`

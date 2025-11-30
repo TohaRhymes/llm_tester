@@ -47,30 +47,45 @@ class QuestionGenerator:
 
         # Calculate number of each question type
         num_single = int(config.total_questions * config.single_choice_ratio)
-        num_multiple = config.total_questions - num_single
+        num_multiple = int(config.total_questions * config.multiple_choice_ratio)
+        num_open_ended = config.total_questions - num_single - num_multiple
 
         # Generate questions
         questions: List[Question] = []
+        question_counter = 0
 
         # Generate single choice questions
         for i in range(num_single):
             question = self._generate_single_question(
                 document=document,
                 question_type="single_choice",
-                question_num=i,
+                question_num=question_counter,
                 difficulty=config.difficulty
             )
             questions.append(question)
+            question_counter += 1
 
         # Generate multiple choice questions
         for i in range(num_multiple):
             question = self._generate_single_question(
                 document=document,
                 question_type="multiple_choice",
-                question_num=num_single + i,
+                question_num=question_counter,
                 difficulty=config.difficulty
             )
             questions.append(question)
+            question_counter += 1
+
+        # Generate open-ended questions
+        for i in range(num_open_ended):
+            question = self._generate_single_question(
+                document=document,
+                question_type="open_ended",
+                question_num=question_counter,
+                difficulty=config.difficulty
+            )
+            questions.append(question)
+            question_counter += 1
 
         # Shuffle questions if seed is set (for determinism testing)
         if config.seed is not None:
@@ -94,7 +109,7 @@ class QuestionGenerator:
 
         Args:
             document: Source document
-            question_type: "single_choice" or "multiple_choice"
+            question_type: "single_choice", "multiple_choice", or "open_ended"
             question_num: Question number for ID
             difficulty: Difficulty level or "mixed"
 
@@ -126,19 +141,38 @@ class QuestionGenerator:
                 end=section.end_pos
             )
 
-            # Create question
-            question = Question(
-                id=f"q-{question_num + 1:03d}",
-                type=question_type,
-                stem=result["stem"],
-                options=result["options"],
-                correct=result["correct"],
-                source_refs=[source_ref],
-                meta=QuestionMeta(
-                    difficulty=actual_difficulty,
-                    tags=[section.heading] if section.heading else []
+            # Create question based on type
+            if question_type == "open_ended":
+                question = Question(
+                    id=f"q-{question_num + 1:03d}",
+                    type=question_type,
+                    stem=result["stem"],
+                    options=None,
+                    correct=None,
+                    reference_answer=result["reference_answer"],
+                    rubric=result["rubric"],
+                    source_refs=[source_ref],
+                    meta=QuestionMeta(
+                        difficulty=actual_difficulty,
+                        tags=[section.heading] if section.heading else []
+                    )
                 )
-            )
+            else:
+                # Single or multiple choice
+                question = Question(
+                    id=f"q-{question_num + 1:03d}",
+                    type=question_type,
+                    stem=result["stem"],
+                    options=result["options"],
+                    correct=result["correct"],
+                    reference_answer=None,
+                    rubric=None,
+                    source_refs=[source_ref],
+                    meta=QuestionMeta(
+                        difficulty=actual_difficulty,
+                        tags=[section.heading] if section.heading else []
+                    )
+                )
 
             return question
 
