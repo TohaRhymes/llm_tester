@@ -241,3 +241,103 @@ class TestHealthResponse:
         response = HealthResponse(status="ok")
         assert response.status == "ok"
         assert response.version == "0.1.0"
+
+class TestOpenEndedQuestion:
+    def test_valid_open_ended_question(self):
+        """Test creating a valid open-ended question."""
+        q = Question(
+            id="q-oe1",
+            type="open_ended",
+            stem="Explain the pathophysiology of preeclampsia.",
+            options=None,
+            correct=None,
+            reference_answer="Preeclampsia involves endothelial dysfunction and placental ischemia...",
+            rubric=["Mentions endothelial dysfunction", "Explains placental ischemia"]
+        )
+        assert q.id == "q-oe1"
+        assert q.type == "open_ended"
+        assert q.options is None
+        assert q.correct is None
+        assert q.reference_answer is not None
+        assert len(q.rubric) == 2
+
+    def test_open_ended_requires_reference_answer(self):
+        """Test that open_ended questions require reference_answer."""
+        with pytest.raises(ValidationError) as exc_info:
+            Question(
+                id="q-oe2",
+                type="open_ended",
+                stem="Explain something.",
+                options=None,
+                correct=None,
+                reference_answer=None  # Missing!
+            )
+        assert "reference_answer required" in str(exc_info.value)
+
+    def test_choice_question_cannot_have_none_options(self):
+        """Test that single/multiple choice require options."""
+        with pytest.raises(ValidationError) as exc_info:
+            Question(
+                id="q3",
+                type="single_choice",
+                stem="Question?",
+                options=None,  # Should fail
+                correct=[0]
+            )
+        assert "options required" in str(exc_info.value)
+
+
+class TestExamConfigWithOpenEnded:
+    def test_config_with_three_ratios(self):
+        """Test ExamConfig with all three question types."""
+        config = ExamConfig(
+            total_questions=10,
+            single_choice_ratio=0.5,
+            multiple_choice_ratio=0.3,
+            open_ended_ratio=0.2
+        )
+        assert config.single_choice_ratio == 0.5
+        assert config.multiple_choice_ratio == 0.3
+        assert config.open_ended_ratio == 0.2
+
+    def test_ratios_must_sum_to_one(self):
+        """Test that ratios must sum to 1.0."""
+        with pytest.raises(ValidationError) as exc_info:
+            ExamConfig(
+                single_choice_ratio=0.5,
+                multiple_choice_ratio=0.4,
+                open_ended_ratio=0.2  # Sum = 1.1, should fail
+            )
+        assert "must sum to 1.0" in str(exc_info.value)
+
+
+class TestStudentAnswerWithText:
+    def test_student_answer_with_choice(self):
+        """Test answer with choice array."""
+        answer = StudentAnswer(
+            question_id="q1",
+            choice=[1, 2],
+            text_answer=None
+        )
+        assert answer.choice == [1, 2]
+        assert answer.text_answer is None
+
+    def test_student_answer_with_text(self):
+        """Test answer with text response."""
+        answer = StudentAnswer(
+            question_id="q-oe1",
+            choice=None,
+            text_answer="Preeclampsia is caused by..."
+        )
+        assert answer.choice is None
+        assert answer.text_answer is not None
+
+    def test_must_have_either_choice_or_text(self):
+        """Test that at least one answer type is required."""
+        with pytest.raises(ValidationError) as exc_info:
+            StudentAnswer(
+                question_id="q1",
+                choice=None,
+                text_answer=None  # Both None should fail
+            )
+        assert "Either choice or text_answer must be provided" in str(exc_info.value)
