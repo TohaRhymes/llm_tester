@@ -1,6 +1,6 @@
 # LLM Test Generator
 
-AI-powered test generation system for educational materials. Generate and grade multiple-choice exams from Markdown content using OpenAI.
+AI-powered test generation system for educational materials. Generate and grade exams (single-choice, multiple-choice, and open-ended questions) from Markdown content using OpenAI.
 
 ## Quick Start
 
@@ -49,9 +49,10 @@ curl -X POST http://localhost:8000/api/grade \
 
 ## Features
 
-- **Question Generation**: Single-choice and multiple-choice questions from Markdown
-- **Automated Grading**: With partial credit support for multiple-choice
+- **Question Generation**: Single-choice, multiple-choice, and open-ended questions from Markdown
+- **Automated Grading**: With partial credit support and AI-powered open-ended grading
 - **Source Traceability**: Every question links to source material
+- **AI Feedback**: Detailed rubric-based feedback for open-ended responses
 - **Medical Focus**: Optimized for medical education content
 - **Web UI**: Complete workflow from upload to grading
 - **REST API**: Full Swagger documentation at `/docs`
