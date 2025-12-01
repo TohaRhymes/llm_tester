@@ -232,42 +232,40 @@
                     <option value="">Choose a file...</option>
                 </select>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
-                <div>
-                    <label><strong>Total Questions:</strong></label>
-                    <input type="number" id="totalQuestions" value="10" min="1" max="50"
-                           style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #ddd;">
-                </div>
-                <div>
-                    <label><strong>Difficulty:</strong></label>
-                    <select id="difficulty" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #ddd;">
-                        <option value="mixed">Mixed</option>
-                        <option value="easy">Easy</option>
-                        <option value="medium">Medium</option>
-                        <option value="hard">Hard</option>
-                    </select>
-                </div>
+            <div style="margin: 20px 0;">
+                <label><strong>Difficulty:</strong></label>
+                <select id="difficulty" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #ddd;">
+                    <option value="mixed">Mixed</option>
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
             </div>
 
             <h3 style="margin: 20px 0;">Question Type Distribution</h3>
-            <div class="ratio-control">
-                <label>Single Choice Ratio: <span id="singleRatioValue">50%</span></label>
-                <input type="range" id="singleRatio" min="0" max="100" value="50"
-                       oninput="updateRatios()" style="width: 100%;">
+            <div class="count-control">
+                <label><strong>Single Choice Questions:</strong></label>
+                <input type="number" id="singleCount" min="0" max="100" value="10"
+                       oninput="updateTotal()" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #ddd;">
             </div>
-            <div class="ratio-control">
-                <label>Multiple Choice Ratio: <span id="multipleRatioValue">30%</span></label>
-                <input type="range" id="multipleRatio" min="0" max="100" value="30"
-                       oninput="updateRatios()" style="width: 100%;">
+            <div class="count-control">
+                <label><strong>Multiple Choice Questions:</strong></label>
+                <input type="number" id="multipleCount" min="0" max="100" value="6"
+                       oninput="updateTotal()" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #ddd;">
             </div>
-            <div class="ratio-control">
-                <label>Open-Ended Ratio: <span id="openRatioValue">20%</span></label>
-                <input type="range" id="openRatio" min="0" max="100" value="20"
-                       oninput="updateRatios()" style="width: 100%;">
+            <div class="count-control">
+                <label><strong>Open-Ended Questions:</strong></label>
+                <input type="number" id="openCount" min="0" max="100" value="4"
+                       oninput="updateTotal()" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #ddd;">
             </div>
-            <p style="color: #666; font-size: 14px; margin-top: 10px;">
-                ℹ️ Ratios will auto-adjust to sum to 100%
-            </p>
+            <div style="background-color: #e8f5e9; padding: 15px; border-radius: 6px; margin-top: 15px;">
+                <p style="margin: 0; font-size: 16px;">
+                    📊 <strong>Total Questions:</strong> <span id="totalQuestionsDisplay" style="font-size: 20px; color: #2e7d32;">20</span>
+                </p>
+                <p style="color: #666; font-size: 13px; margin: 5px 0 0 0;">
+                    ℹ️ Specify exact counts for each question type
+                </p>
+            </div>
 
             <button class="btn" onclick="generateExam()">🚀 Generate Exam</button>
             <div id="generateResult"></div>
@@ -375,23 +373,13 @@
             }
         }
 
-        function updateRatios() {
-            const single = parseInt(document.getElementById('singleRatio').value);
-            const multiple = parseInt(document.getElementById('multipleRatio').value);
-            const open = parseInt(document.getElementById('openRatio').value);
+        function updateTotal() {
+            const single = parseInt(document.getElementById('singleCount').value) || 0;
+            const multiple = parseInt(document.getElementById('multipleCount').value) || 0;
+            const open = parseInt(document.getElementById('openCount').value) || 0;
 
             const total = single + multiple + open;
-
-            // Normalize to 100%
-            if (total > 0) {
-                const singleNorm = Math.round((single / total) * 100);
-                const multipleNorm = Math.round((multiple / total) * 100);
-                const openNorm = 100 - singleNorm - multipleNorm;
-
-                document.getElementById('singleRatioValue').textContent = singleNorm + '%';
-                document.getElementById('multipleRatioValue').textContent = multipleNorm + '%';
-                document.getElementById('openRatioValue').textContent = openNorm + '%';
-            }
+            document.getElementById('totalQuestionsDisplay').textContent = total;
         }
 
         async function generateExam() {
@@ -409,24 +397,22 @@
                 const fileResp = await fetch(`${API_BASE}/api/files/${filename}`);
                 const fileData = await fileResp.json();
 
-                const totalQuestions = parseInt(document.getElementById('totalQuestions').value);
-                const single = parseInt(document.getElementById('singleRatio').value);
-                const multiple = parseInt(document.getElementById('multipleRatio').value);
-                const open = parseInt(document.getElementById('openRatio').value);
-                const total = single + multiple + open;
+                const singleCount = parseInt(document.getElementById('singleCount').value) || 0;
+                const multipleCount = parseInt(document.getElementById('multipleCount').value) || 0;
+                const openCount = parseInt(document.getElementById('openCount').value) || 0;
 
-                // Normalize ratios
-                const singleRatio = single / total;
-                const multipleRatio = multiple / total;
-                const openRatio = open / total;
+                if (singleCount + multipleCount + openCount === 0) {
+                    alert('Please specify at least one question');
+                    resultDiv.innerHTML = '<div class="error">⚠️ At least one question type must have a count > 0</div>';
+                    return;
+                }
 
                 const requestData = {
                     markdown_content: fileData.content,
                     config: {
-                        total_questions: totalQuestions,
-                        single_choice_ratio: singleRatio,
-                        multiple_choice_ratio: multipleRatio,
-                        open_ended_ratio: openRatio,
+                        single_choice_count: singleCount,
+                        multiple_choice_count: multipleCount,
+                        open_ended_count: openCount,
                         difficulty: document.getElementById('difficulty').value
                     }
                 };

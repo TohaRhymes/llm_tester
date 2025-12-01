@@ -114,8 +114,9 @@ class TestExamConfig:
     def test_valid_config(self):
         config = ExamConfig(
             total_questions=20,
-            single_choice_ratio=0.7,
+            single_choice_ratio=0.5,
             multiple_choice_ratio=0.3,
+            open_ended_ratio=0.2,
             difficulty="mixed"
         )
         assert config.total_questions == 20
@@ -133,8 +134,9 @@ class TestExamConfig:
     def test_default_values(self):
         config = ExamConfig()
         assert config.total_questions == 20
-        assert config.single_choice_ratio == 0.7
+        assert config.single_choice_ratio == 0.5
         assert config.multiple_choice_ratio == 0.3
+        assert config.open_ended_ratio == 0.2
 
 
 class TestExam:

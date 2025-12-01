@@ -2,7 +2,7 @@
 Pydantic models for API contracts and data structures.
 """
 from typing import List, Literal, Optional, Dict, Any
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class SourceReference(BaseModel):
@@ -95,22 +95,88 @@ class Question(BaseModel):
 
 
 class ExamConfig(BaseModel):
-    """Configuration used to generate an exam."""
+    """Configuration used to generate an exam.
+
+    Supports two input modes:
+    1. Count-based (preferred): Specify exact counts for each question type
+    2. Ratio-based (legacy): Specify ratios that sum to 1.0
+
+    If counts are provided, they take precedence and ratios are auto-calculated.
+    If ratios are provided, counts are auto-calculated from total_questions.
+    """
+    # Count-based fields (preferred)
+    single_choice_count: Optional[int] = Field(None, ge=0, description="Exact number of single choice questions")
+    multiple_choice_count: Optional[int] = Field(None, ge=0, description="Exact number of multiple choice questions")
+    open_ended_count: Optional[int] = Field(None, ge=0, description="Exact number of open-ended questions")
+
+    # Ratio-based fields (legacy, for backward compatibility)
     total_questions: int = Field(20, ge=1, le=100, description="Number of questions to generate")
     single_choice_ratio: float = Field(0.5, ge=0.0, le=1.0, description="Ratio of single choice questions")
     multiple_choice_ratio: float = Field(0.3, ge=0.0, le=1.0, description="Ratio of multiple choice questions")
     open_ended_ratio: float = Field(0.2, ge=0.0, le=1.0, description="Ratio of open-ended questions")
+
     difficulty: Literal["easy", "medium", "hard", "mixed"] = Field("mixed", description="Question difficulty")
     seed: Optional[int] = Field(None, description="Random seed for reproducibility")
 
-    @field_validator('open_ended_ratio')
-    @classmethod
-    def validate_ratios_sum(cls, v: float, info) -> float:
-        if 'single_choice_ratio' in info.data and 'multiple_choice_ratio' in info.data:
-            total = info.data['single_choice_ratio'] + info.data['multiple_choice_ratio'] + v
-            if abs(total - 1.0) > 0.01:  # Allow small floating point errors
-                raise ValueError(f'Ratios must sum to 1.0, got {total}')
-        return v
+    @model_validator(mode='after')
+    def sync_counts_and_ratios(self) -> 'ExamConfig':
+        """Synchronize counts and ratios, prioritizing counts if both are provided."""
+        # Check if any counts are provided
+        has_counts = any([
+            self.single_choice_count is not None,
+            self.multiple_choice_count is not None,
+            self.open_ended_count is not None
+        ])
+
+        if has_counts:
+            # Count-based mode: counts take precedence
+            # Fill in missing counts with 0
+            if self.single_choice_count is None:
+                self.single_choice_count = 0
+            if self.multiple_choice_count is None:
+                self.multiple_choice_count = 0
+            if self.open_ended_count is None:
+                self.open_ended_count = 0
+
+            # Round floats to integers if needed
+            self.single_choice_count = round(self.single_choice_count)
+            self.multiple_choice_count = round(self.multiple_choice_count)
+            self.open_ended_count = round(self.open_ended_count)
+
+            # Validate at least one count is positive
+            total_count = self.single_choice_count + self.multiple_choice_count + self.open_ended_count
+            if total_count == 0:
+                raise ValueError('At least one count must be positive')
+
+            # Validate total doesn't exceed maximum
+            if total_count > 100:
+                raise ValueError(f'Total questions ({total_count}) exceeds maximum of 100')
+
+            # Calculate total_questions from counts
+            self.total_questions = total_count
+
+            # Calculate ratios from counts
+            self.single_choice_ratio = self.single_choice_count / total_count
+            self.multiple_choice_ratio = self.multiple_choice_count / total_count
+            self.open_ended_ratio = self.open_ended_count / total_count
+        else:
+            # Ratio-based mode: validate ratios and calculate counts
+            # Validate ratios sum to 1.0
+            total_ratio = self.single_choice_ratio + self.multiple_choice_ratio + self.open_ended_ratio
+            if abs(total_ratio - 1.0) > 0.01:
+                raise ValueError(f'Ratios must sum to 1.0, got {total_ratio}')
+
+            # Calculate counts from ratios
+            # Use floor division and assign remainder to maintain total
+            single_count = int(self.total_questions * self.single_choice_ratio)
+            multiple_count = int(self.total_questions * self.multiple_choice_ratio)
+            open_ended_count = self.total_questions - single_count - multiple_count
+
+            self.single_choice_count = single_count
+            self.multiple_choice_count = multiple_count
+            self.open_ended_count = open_ended_count
+
+        return self
 
 
 class Exam(BaseModel):
