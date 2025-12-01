@@ -34,9 +34,7 @@ ENV/
 *~
 
 # data
-uploads/
-data/
-examples/data
+examples
 
 # Testing
 .pytest_cache/

@@ -10,7 +10,7 @@ import json
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 from app.core.parser import MarkdownParser
 from app.core.generator import QuestionGenerator
@@ -23,23 +23,25 @@ from app.core.evaluator import (
 )
 from app.models.schemas import ExamConfig, GradeRequest, StudentAnswer
 from app.services.openai_client import OpenAIClient
+from app.config import settings
 
 
 class ModelEvaluator:
     """Orchestrates evaluation of multiple models."""
 
-    def __init__(self, models: List[str], content_path: str, output_dir: str = "out/evaluations"):
+    def __init__(self, models: List[str], content_path: str, output_dir: Optional[str] = None):
         """
         Initialize model evaluator.
 
         Args:
             models: List of model names to evaluate
             content_path: Path to markdown content file
-            output_dir: Directory for evaluation outputs
+            output_dir: Directory for evaluation outputs (defaults to `<output_dir>/evaluations`)
         """
         self.models = models
         self.content_path = content_path
-        self.output_dir = Path(output_dir)
+        default_output = Path(settings.output_dir) / "evaluations"
+        self.output_dir = Path(output_dir) if output_dir else default_output
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # Initialize evaluators
@@ -242,7 +244,7 @@ def main():
     parser.add_argument(
         "--output-dir",
         type=str,
-        default="out/evaluations",
+        default=None,
         help="Output directory for evaluation results"
     )
 
