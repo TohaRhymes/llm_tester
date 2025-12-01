@@ -189,6 +189,7 @@ OUTPUT_DIR=out
 
 - **Quick Start**: This README
 - **API Reference**: http://localhost:8000/docs (Swagger)
+- **Model Evaluation**: [docs/EVALUATION.md](docs/EVALUATION.md) - Compare LLM models
 - **Technical Details**: [docs/description.md](docs/description.md)
 - **Exam Defense**: [docs/PRESENTATION.md](docs/PRESENTATION.md)
 - **Verification**: [docs/AUTOMATED_REVIEW.md](docs/AUTOMATED_REVIEW.md)
