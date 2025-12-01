@@ -116,6 +116,7 @@ class ExamConfig(BaseModel):
     open_ended_ratio: float = Field(0.2, ge=0.0, le=1.0, description="Ratio of open-ended questions")
 
     difficulty: Literal["easy", "medium", "hard", "mixed"] = Field("mixed", description="Question difficulty")
+    language: Literal["en", "ru"] = Field("en", description="Language for questions and prompts (en=English, ru=Russian)")
     seed: Optional[int] = Field(None, description="Random seed for reproducibility")
 
     @model_validator(mode='after')
