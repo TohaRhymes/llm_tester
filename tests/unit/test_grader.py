@@ -260,3 +260,170 @@ class TestPartialCreditCalculation:
 
         credit = grader.calculate_partial_credit(expected, given)
         assert credit == 0.0
+
+
+class TestOpenEndedGrading:
+    """Tests for open-ended question grading."""
+
+    @pytest.fixture
+    def grader(self):
+        return Grader()
+
+    @pytest.fixture
+    def open_ended_exam(self):
+        """Create an exam with open-ended questions."""
+        q1 = Question(
+            id="oe1",
+            type="open_ended",
+            stem="Explain the pathophysiology of preeclampsia.",
+            options=None,
+            correct=None,
+            reference_answer="Preeclampsia involves endothelial dysfunction caused by placental ischemia. "
+                           "This leads to systemic vasoconstriction, increased vascular permeability, and organ damage.",
+            rubric=[
+                "Mentions endothelial dysfunction",
+                "Explains placental ischemia as root cause",
+                "Describes systemic effects (vasoconstriction, permeability)"
+            ]
+        )
+        q2 = Question(
+            id="oe2",
+            type="open_ended",
+            stem="Describe the diagnostic criteria for preeclampsia.",
+            options=None,
+            correct=None,
+            reference_answer="Diagnosis requires BP ≥140/90 mmHg after 20 weeks gestation plus proteinuria ≥300mg/24h "
+                           "or other organ dysfunction markers.",
+            rubric=[
+                "States BP threshold (≥140/90 mmHg)",
+                "Mentions timing (after 20 weeks)",
+                "Includes proteinuria criteria (≥300mg/24h)"
+            ]
+        )
+        return Exam(
+            exam_id="open-exam",
+            questions=[q1, q2],
+            config_used=ExamConfig(
+                total_questions=2,
+                single_choice_ratio=0.0,
+                multiple_choice_ratio=0.0,
+                open_ended_ratio=1.0
+            )
+        )
+
+    def test_grade_open_ended_with_good_answer(self, grader, open_ended_exam):
+        """Test grading a good open-ended answer."""
+        request = GradeRequest(
+            exam_id="open-exam",
+            answers=[
+                StudentAnswer(
+                    question_id="oe1",
+                    text_answer="Preeclampsia is caused by endothelial dysfunction from placental ischemia. "
+                               "This results in widespread vasoconstriction and increased permeability."
+                )
+            ]
+        )
+        response = grader.grade(open_ended_exam, request)
+
+        assert len(response.per_question) == 1
+        result = response.per_question[0]
+        assert result.question_id == "oe1"
+        assert result.given_text is not None
+        assert result.feedback is not None
+        assert 0.0 <= result.partial_credit <= 1.0
+
+    def test_grade_open_ended_uses_ai_scoring(self, grader, open_ended_exam):
+        """Test that open-ended grading uses AI for scoring."""
+        request = GradeRequest(
+            exam_id="open-exam",
+            answers=[
+                StudentAnswer(
+                    question_id="oe1",
+                    text_answer="Preeclampsia involves endothelial problems and placental issues causing high blood pressure."
+                )
+            ]
+        )
+        response = grader.grade(open_ended_exam, request)
+
+        result = response.per_question[0]
+        # AI should provide feedback
+        assert result.feedback is not None
+        assert len(result.feedback) > 0
+        # Score should be between 0 and 1
+        assert 0.0 <= result.partial_credit <= 1.0
+
+    def test_grade_open_ended_correctness_threshold(self, grader, open_ended_exam):
+        """Test that score >= 0.7 is considered correct."""
+        # This test verifies the threshold logic
+        # We can't control AI output, so we test with mock or just verify the logic exists
+        request = GradeRequest(
+            exam_id="open-exam",
+            answers=[
+                StudentAnswer(
+                    question_id="oe1",
+                    text_answer="Complete answer with all key points."
+                )
+            ]
+        )
+        response = grader.grade(open_ended_exam, request)
+        result = response.per_question[0]
+
+        # If partial_credit >= 0.7, should be marked correct
+        if result.partial_credit >= 0.7:
+            assert result.is_correct is True
+        else:
+            assert result.is_correct is False
+
+    def test_grade_mixed_exam_with_open_ended(self, grader):
+        """Test grading exam with both choice and open-ended questions."""
+        q_choice = Question(
+            id="q1",
+            type="single_choice",
+            stem="Select correct answer",
+            options=["A", "B", "C"],
+            correct=[1]
+        )
+        q_open = Question(
+            id="oe1",
+            type="open_ended",
+            stem="Explain the concept.",
+            reference_answer="The concept involves multiple factors...",
+            rubric=["Factor 1", "Factor 2", "Factor 3"]
+        )
+        mixed_exam = Exam(
+            exam_id="mixed",
+            questions=[q_choice, q_open],
+            config_used=ExamConfig()
+        )
+
+        request = GradeRequest(
+            exam_id="mixed",
+            answers=[
+                StudentAnswer(question_id="q1", choice=[1]),
+                StudentAnswer(question_id="oe1", text_answer="This concept has several factors including...")
+            ]
+        )
+        response = grader.grade(mixed_exam, request)
+
+        assert len(response.per_question) == 2
+        # First is choice question
+        assert response.per_question[0].given is not None
+        # Second is open-ended
+        assert response.per_question[1].given_text is not None
+        assert response.per_question[1].feedback is not None
+
+    def test_grade_open_ended_summary_calculation(self, grader, open_ended_exam):
+        """Test that open-ended scores are included in summary."""
+        request = GradeRequest(
+            exam_id="open-exam",
+            answers=[
+                StudentAnswer(question_id="oe1", text_answer="Good answer here."),
+                StudentAnswer(question_id="oe2", text_answer="Another good answer.")
+            ]
+        )
+        response = grader.grade(open_ended_exam, request)
+
+        # Summary should include both questions
+        assert response.summary.total == 2
+        # Score percent should be calculated from partial credits
+        assert 0.0 <= response.summary.score_percent <= 100.0

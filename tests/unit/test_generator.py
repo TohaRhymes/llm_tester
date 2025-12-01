@@ -216,3 +216,105 @@ class TestQuestionValidation:
                 options=["A", ""],
                 correct=[0]
             )
+
+
+class TestOpenEndedQuestionGeneration:
+    """Tests for open-ended question generation."""
+
+    @pytest.fixture
+    def generator(self):
+        return QuestionGenerator()
+
+    @pytest.fixture
+    def sample_document(self):
+        """Create a sample parsed document."""
+        sections = [
+            ParsedSection(
+                heading="Preeclampsia Pathophysiology",
+                content="Preeclampsia is characterized by endothelial dysfunction and placental ischemia. "
+                        "Diagnosis requires BP ≥140/90 mmHg and proteinuria ≥300mg/24h after 20 weeks gestation.",
+                level=2,
+                start_pos=0,
+                end_pos=200
+            ),
+            ParsedSection(
+                heading="Management",
+                content="Treatment includes antihypertensives (labetalol, nifedipine) and magnesium sulfate for seizure prophylaxis.",
+                level=2,
+                start_pos=201,
+                end_pos=350
+            )
+        ]
+        return ParsedDocument(
+            title="Hypertensive Disorders",
+            sections=sections,
+            source_text="# Hypertensive Disorders\n## Preeclampsia..."
+        )
+
+    def test_generate_open_ended_questions(self, generator, sample_document):
+        """Test generation of open-ended questions."""
+        config = ExamConfig(
+            total_questions=5,
+            single_choice_ratio=0.0,
+            multiple_choice_ratio=0.0,
+            open_ended_ratio=1.0
+        )
+        result = generator.generate(sample_document, config, "test-open")
+
+        assert len(result.questions) == 5
+        for question in result.questions:
+            assert question.type == "open_ended"
+            assert question.options is None
+            assert question.correct is None
+            assert question.reference_answer is not None
+            assert question.rubric is not None
+            assert len(question.rubric) >= 3
+
+    def test_generate_mixed_with_open_ended(self, generator, sample_document):
+        """Test generation with mixed question types including open-ended."""
+        config = ExamConfig(
+            total_questions=10,
+            single_choice_ratio=0.5,
+            multiple_choice_ratio=0.3,
+            open_ended_ratio=0.2
+        )
+        result = generator.generate(sample_document, config, "test-mixed")
+
+        single_count = sum(1 for q in result.questions if q.type == "single_choice")
+        multiple_count = sum(1 for q in result.questions if q.type == "multiple_choice")
+        open_count = sum(1 for q in result.questions if q.type == "open_ended")
+
+        assert single_count == 5
+        assert multiple_count == 3
+        assert open_count == 2
+
+    def test_open_ended_has_valid_reference_answer(self, generator, sample_document):
+        """Test that open-ended questions have non-empty reference answers."""
+        config = ExamConfig(
+            total_questions=3,
+            single_choice_ratio=0.0,
+            multiple_choice_ratio=0.0,
+            open_ended_ratio=1.0
+        )
+        result = generator.generate(sample_document, config, "test-ref")
+
+        for question in result.questions:
+            assert question.reference_answer is not None
+            assert len(question.reference_answer.strip()) > 0
+
+    def test_open_ended_has_valid_rubric(self, generator, sample_document):
+        """Test that open-ended questions have valid rubric."""
+        config = ExamConfig(
+            total_questions=2,
+            single_choice_ratio=0.0,
+            multiple_choice_ratio=0.0,
+            open_ended_ratio=1.0
+        )
+        result = generator.generate(sample_document, config, "test-rubric")
+
+        for question in result.questions:
+            assert question.rubric is not None
+            assert len(question.rubric) >= 3
+            assert len(question.rubric) <= 5
+            for criterion in question.rubric:
+                assert len(criterion.strip()) > 0
