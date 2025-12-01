@@ -1,9 +1,9 @@
 {
   "info": {
     "name": "LLM Test Generator API",
-    "description": "Complete API collection for LLM Test Generator - generate and grade educational exams from Markdown content",
+    "description": "Complete API collection for LLM Test Generator - generate and grade educational exams from Markdown content with multilingual support",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "version": "1.0.0"
+    "version": "2.0.0"
   },
   "item": [
     {
@@ -159,7 +159,7 @@
       "response": []
     },
     {
-      "name": "Generate Exam",
+      "name": "Generate Exam - English (Count-based)",
       "event": [
         {
           "listen": "test",
@@ -178,22 +178,23 @@
               "pm.test(\"Response contains questions\", function () {",
               "    const jsonData = pm.response.json();",
               "    pm.expect(jsonData.questions).to.be.an('array');",
-              "    pm.expect(jsonData.questions.length).to.be.greaterThan(0);",
+              "    pm.expect(jsonData.questions.length).to.equal(5);",
               "});",
               "",
-              "pm.test(\"Questions have required fields\", function () {",
+              "pm.test(\"Questions have required fields including rubrics\", function () {",
               "    const jsonData = pm.response.json();",
               "    const firstQuestion = jsonData.questions[0];",
               "    pm.expect(firstQuestion.id).to.exist;",
               "    pm.expect(firstQuestion.type).to.exist;",
               "    pm.expect(firstQuestion.stem).to.exist;",
-              "    pm.expect(firstQuestion.options).to.be.an('array');",
-              "    pm.expect(firstQuestion.correct).to.be.an('array');",
+              "    pm.expect(firstQuestion.rubric).to.be.an('array');",
+              "    pm.expect(firstQuestion.rubric.length).to.be.greaterThan(0);",
               "});",
               "",
-              "pm.test(\"Config is included\", function () {",
+              "pm.test(\"Config includes language setting\", function () {",
               "    const jsonData = pm.response.json();",
               "    pm.expect(jsonData.config_used).to.exist;",
+              "    pm.expect(jsonData.config_used.language).to.equal('en');",
               "});"
             ],
             "type": "text/javascript"
@@ -210,14 +211,118 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"markdown_content\": \"# Гестационная гипертензия и преэклампсия\\n\\n## Определения\\n- **Гестационная гипертензия**: артериальное давление ≥140/90 мм рт. ст. после 20-й недели беременности без признаков протеинурии.\\n- **Преэклампсия**: гипертензия после 20-й недели в сочетании с протеинурией **или** признаками поражения органов-мишеней.\\n\\n## Факторы риска\\n- Первая беременность, многоплодие, ожирение (ИМТ ≥30), возраст матери <18 или >40, семейный анамнез преэклампсии, хроническая гипертензия.\\n\\n## Диагностика\\n- Измерение АД в покое в двух повторениях с интервалом ≥4 часа.\\n- Протеинурия: ≥300 мг/сут **или** отношение белок/креатинин мочи ≥0.3.\\n- Оценка органных проявлений: тромбоцитопения, повышение АЛТ/АСТ, головная боль, нарушения зрения, отёк лёгких.\\n\\n## Тактика ведения\\n- Мониторинг АД и симптомов, лабораторный контроль.\\n- Антигипертензивная терапия при АД ≥160/110.\\n- Рассмотрение родоразрешения при ухудшении состояния матери/плода или при сроке ≥37 недель.\",\n  \"config\": {\n    \"total_questions\": 5,\n    \"single_choice_ratio\": 0.6,\n    \"multiple_choice_ratio\": 0.4,\n    \"difficulty\": \"medium\",\n    \"seed\": 42\n  }\n}"
+          "raw": "{\n  \"markdown_content\": \"# Gestational Hypertension and Preeclampsia\\n\\n## Definitions\\n- **Gestational Hypertension**: Blood pressure ≥140/90 mmHg after 20 weeks of pregnancy without proteinuria.\\n- **Preeclampsia**: Hypertension after 20 weeks combined with proteinuria **or** signs of organ damage.\\n\\n## Risk Factors\\n- First pregnancy, multiple pregnancy, obesity (BMI ≥30), maternal age <18 or >40, family history of preeclampsia, chronic hypertension.\\n\\n## Diagnosis\\n- Blood pressure measurement at rest in two repetitions with an interval ≥4 hours.\\n- Proteinuria: ≥300 mg/day **or** urine protein/creatinine ratio ≥0.3.\\n- Assessment of organ manifestations: thrombocytopenia, elevated ALT/AST, headache, visual disturbances, pulmonary edema.\\n\\n## Management\\n- Monitoring blood pressure and symptoms, laboratory control.\\n- Antihypertensive therapy at BP ≥160/110.\\n- Consider delivery if maternal/fetal condition worsens or at ≥37 weeks gestation.\",\n  \"config\": {\n    \"single_choice_count\": 2,\n    \"multiple_choice_count\": 2,\n    \"open_ended_count\": 1,\n    \"difficulty\": \"medium\",\n    \"language\": \"en\",\n    \"seed\": 42\n  }\n}"
         },
         "url": {
           "raw": "{{base_url}}/api/generate",
           "host": ["{{base_url}}"],
           "path": ["api", "generate"]
         },
-        "description": "Generate an exam from Markdown content with custom configuration"
+        "description": "Generate an English exam using count-based configuration (recommended approach). Includes rubrics for all question types."
+      },
+      "response": []
+    },
+    {
+      "name": "Generate Exam - Russian (Count-based)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response contains exam_id\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.exam_id).to.exist;",
+              "    pm.environment.set(\"exam_id_ru\", jsonData.exam_id);",
+              "});",
+              "",
+              "pm.test(\"Questions are in Russian (Cyrillic)\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    const firstQuestion = jsonData.questions[0];",
+              "    // Check if stem contains Cyrillic characters",
+              "    const hasCyrillic = /[\\u0400-\\u04FF]/.test(firstQuestion.stem);",
+              "    pm.expect(hasCyrillic).to.be.true;",
+              "});",
+              "",
+              "pm.test(\"All questions have rubrics\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    jsonData.questions.forEach(q => {",
+              "        pm.expect(q.rubric).to.be.an('array');",
+              "        pm.expect(q.rubric.length).to.be.greaterThan(0);",
+              "    });",
+              "});",
+              "",
+              "pm.test(\"Config language is Russian\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.config_used.language).to.equal('ru');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"markdown_content\": \"# Гестационная гипертензия и преэклампсия\\n\\n## Определения\\n- **Гестационная гипертензия**: артериальное давление ≥140/90 мм рт. ст. после 20-й недели беременности без признаков протеинурии.\\n- **Преэклампсия**: гипертензия после 20-й недели в сочетании с протеинурией **или** признаками поражения органов-мишеней.\\n\\n## Факторы риска\\n- Первая беременность, многоплодие, ожирение (ИМТ ≥30), возраст матери <18 или >40, семейный анамнез преэклампсии, хроническая гипертензия.\\n\\n## Диагностика\\n- Измерение АД в покое в двух повторениях с интервалом ≥4 часа.\\n- Протеинурия: ≥300 мг/сут **или** отношение белок/креатинин мочи ≥0.3.\\n- Оценка органных проявлений: тромбоцитопения, повышение АЛТ/АСТ, головная боль, нарушения зрения, отёк лёгких.\\n\\n## Тактика ведения\\n- Мониторинг АД и симптомов, лабораторный контроль.\\n- Антигипертензивная терапия при АД ≥160/110.\\n- Рассмотрение родоразрешения при ухудшении состояния матери/плода или при сроке ≥37 недель.\",\n  \"config\": {\n    \"single_choice_count\": 2,\n    \"multiple_choice_count\": 1,\n    \"open_ended_count\": 2,\n    \"difficulty\": \"medium\",\n    \"language\": \"ru\",\n    \"seed\": 123\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/generate",
+          "host": ["{{base_url}}"],
+          "path": ["api", "generate"]
+        },
+        "description": "Generate a Russian exam with questions in Cyrillic. Even if source content is in English, questions will be generated in Russian."
+      },
+      "response": []
+    },
+    {
+      "name": "Generate Exam - Legacy Ratio-based",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response contains correct number of questions\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.questions.length).to.equal(10);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"markdown_content\": \"# Medical Topic\\n\\nSome educational content here for generating questions.\\n\\n## Subtopic\\nMore detailed information.\",\n  \"config\": {\n    \"total_questions\": 10,\n    \"single_choice_ratio\": 0.5,\n    \"multiple_choice_ratio\": 0.3,\n    \"open_ended_ratio\": 0.2,\n    \"difficulty\": \"mixed\",\n    \"language\": \"en\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/generate",
+          "host": ["{{base_url}}"],
+          "path": ["api", "generate"]
+        },
+        "description": "Generate exam using legacy ratio-based configuration (backward compatible). Ratios must sum to 1.0."
       },
       "response": []
     },
@@ -288,15 +393,14 @@
       "response": []
     },
     {
-      "name": "Grade Exam",
+      "name": "Grade Exam - Choice Questions Only",
       "event": [
         {
           "listen": "prerequest",
           "script": {
             "exec": [
-              "// This script generates sample answers for the exam",
-              "// In a real scenario, these would come from student input",
-              "console.log(\"Preparing sample answers for grading\");"
+              "// This script prepares sample answers for choice questions",
+              "console.log(\"Preparing sample answers for grading (choice questions)\");"
             ],
             "type": "text/javascript"
           }
@@ -328,8 +432,7 @@
               "    const firstResult = jsonData.per_question[0];",
               "    pm.expect(firstResult.question_id).to.exist;",
               "    pm.expect(firstResult.is_correct).to.be.a('boolean');",
-              "    pm.expect(firstResult.expected).to.be.an('array');",
-              "    pm.expect(firstResult.given).to.be.an('array');",
+              "    pm.expect(firstResult.partial_credit).to.be.a('number');",
               "});"
             ],
             "type": "text/javascript"
@@ -346,14 +449,68 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"exam_id\": \"{{exam_id}}\",\n  \"answers\": [\n    {\n      \"question_id\": \"q-001\",\n      \"choice\": [0]\n    },\n    {\n      \"question_id\": \"q-002\",\n      \"choice\": [1]\n    },\n    {\n      \"question_id\": \"q-003\",\n      \"choice\": [2]\n    },\n    {\n      \"question_id\": \"q-004\",\n      \"choice\": [0, 2]\n    },\n    {\n      \"question_id\": \"q-005\",\n      \"choice\": [1, 3]\n    }\n  ]\n}"
+          "raw": "{\n  \"exam_id\": \"{{exam_id}}\",\n  \"answers\": [\n    {\n      \"question_id\": \"q-001\",\n      \"choice\": [0]\n    },\n    {\n      \"question_id\": \"q-002\",\n      \"choice\": [1]\n    },\n    {\n      \"question_id\": \"q-003\",\n      \"choice\": [2]\n    },\n    {\n      \"question_id\": \"q-004\",\n      \"choice\": [0, 2]\n    }\n  ]\n}"
         },
         "url": {
           "raw": "{{base_url}}/api/grade",
           "host": ["{{base_url}}"],
           "path": ["api", "grade"]
         },
-        "description": "Grade student answers against the exam answer keys. Note: Update question_id values based on the actual exam generated."
+        "description": "Grade student answers for choice questions (single and multiple choice). Supports partial credit for multiple choice questions."
+      },
+      "response": []
+    },
+    {
+      "name": "Grade Exam - With Open-ended Questions",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Open-ended questions have AI feedback\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    const openEndedResults = jsonData.per_question.filter(q => q.feedback);",
+              "    pm.expect(openEndedResults.length).to.be.greaterThan(0);",
+              "    openEndedResults.forEach(result => {",
+              "        pm.expect(result.feedback).to.be.a('string');",
+              "        pm.expect(result.feedback.length).to.be.greaterThan(0);",
+              "    });",
+              "});",
+              "",
+              "pm.test(\"Partial credit scores are valid\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    jsonData.per_question.forEach(result => {",
+              "        pm.expect(result.partial_credit).to.be.at.least(0);",
+              "        pm.expect(result.partial_credit).to.be.at.most(1);",
+              "    });",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"exam_id\": \"{{exam_id}}\",\n  \"answers\": [\n    {\n      \"question_id\": \"q-001\",\n      \"choice\": [0]\n    },\n    {\n      \"question_id\": \"q-002\",\n      \"choice\": [1]\n    },\n    {\n      \"question_id\": \"q-003\",\n      \"choice\": [2]\n    },\n    {\n      \"question_id\": \"q-004\",\n      \"choice\": [0, 2]\n    },\n    {\n      \"question_id\": \"q-005\",\n      \"text_answer\": \"Gestational hypertension is defined as blood pressure of 140/90 mmHg or higher after 20 weeks of pregnancy. Management includes monitoring blood pressure regularly and using antihypertensive medications when blood pressure reaches 160/110 or higher. The condition typically resolves within 12 weeks after delivery.\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/grade",
+          "host": ["{{base_url}}"],
+          "path": ["api", "grade"]
+        },
+        "description": "Grade exam including open-ended questions. AI evaluates text answers against rubric criteria and provides detailed feedback."
       },
       "response": []
     }
@@ -366,6 +523,11 @@
     },
     {
       "key": "exam_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "exam_id_ru",
       "value": "",
       "type": "string"
     },
