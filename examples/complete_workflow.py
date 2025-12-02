@@ -18,28 +18,49 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-# Import functions by loading the modules
-import importlib.util
+# Import from app.core and app.services
+from app.core.exam_builder import (
+    generate_exam_from_file,
+    generate_exam_from_text,
+    generate_question,
+    save_exam,
+    load_exam
+)
+from app.services.model_answer_tester import ModelAnswerTester
 
-def load_module_from_file(filepath):
-    """Load a Python module from file path."""
-    spec = importlib.util.spec_from_file_location("temp_module", filepath)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+# Convenience aliases
+generate_exam = generate_exam_from_file
+generate_single_question = generate_question
 
-# Load question generation functions
-qgen_module = load_module_from_file(project_root / "examples/notebooks/01_question_generation.py")
-generate_exam = qgen_module.generate_exam
-generate_single_question = qgen_module.generate_single_question
-save_exam = qgen_module.save_exam
+# Initialize tester
+tester = ModelAnswerTester()
 
-# Load model evaluation functions
-eval_module = load_module_from_file(project_root / "examples/notebooks/02_model_evaluation.py")
-test_model = eval_module.test_model
-compare_models = eval_module.compare_models
-analyze_result = eval_module.analyze_result
-print_comparison = eval_module.print_comparison
+
+def test_model(exam_file: str, model_name: str, provider: str, **kwargs):
+    """Test single model on exam."""
+    exam = load_exam(exam_file)
+    return tester.test_model_on_exam(exam, model_name, provider, **kwargs)
+
+
+def compare_models(exam_file: str, models: list, **kwargs):
+    """Compare multiple models on exam."""
+    exam = load_exam(exam_file)
+    return tester.batch_test_models(exam, models, **kwargs)
+
+
+def analyze_result(result):
+    """Print detailed analysis."""
+    print("=" * 70)
+    print(f"Model: {result.model_name} ({result.provider})")
+    print(f"Accuracy: {result.accuracy:.2%}")
+    print(f"Correct: {result.correct_count}/{result.total_questions}")
+
+
+def print_comparison(comparison):
+    """Print comparison table."""
+    print("\nModel Comparison:")
+    for model in comparison["models"]:
+        print(f"  {model['model_name']}: {model['accuracy']:.2%}")
 
 
 def example_1_from_file():
