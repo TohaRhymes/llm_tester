@@ -76,8 +76,10 @@ examples/notebooks/        # Jupyter-friendly examples
   02_model_evaluation.py     # Test models on exams
 tests/              # unit/integration/BDD suites
 docs/
-  SOLUTION_OVERVIEW.md   # Consolidated solution guide
-  EVALUATION.md          # Evaluation systems documentation
+  QUICK_START.md         # 5-minute getting started guide
+  SCRIPTS_GUIDE.md       # Detailed guide to all scripts and tools
+  EVALUATION.md          # Complete evaluation workflows
+  SOLUTION_OVERVIEW.md   # Architecture and API reference
 ```
 
 ## Testing and Evaluation
@@ -137,11 +139,14 @@ comparison = compare_models(
 )
 ```
 
-See `docs/EVALUATION.md` for detailed evaluation workflows.
+## 📚 Documentation
+
+- **🚀 [Quick Start Guide](docs/QUICK_START.md)** - Get started in 5 minutes with examples
+- **📖 [Scripts Guide](docs/SCRIPTS_GUIDE.md)** - Understand all scripts and when to use them
+- **📊 [Evaluation Guide](docs/EVALUATION.md)** - Complete evaluation workflows and best practices
+- **🏗️ [Solution Overview](docs/SOLUTION_OVERVIEW.md)** - Architecture, API reference, and internals
 
 ## Notes
-- OpenAI key is required for question generation and open-ended grading.
-- CORS is wide open and there is no authentication; tighten before production.
-- Exams/grades are stored on disk; clean up `data/out/` and `data/uploads/` as needed.
-
-For deeper details (architecture, REST behaviors, evaluation metrics), see `docs/SOLUTION_OVERVIEW.md`.
+- OpenAI or Yandex API key required depending on provider choice
+- CORS is wide open and there is no authentication; tighten before production
+- Exams/grades are stored on disk; clean up `data/out/` and `data/uploads/` as needed
