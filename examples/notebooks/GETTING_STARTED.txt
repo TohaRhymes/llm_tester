@@ -1,0 +1,238 @@
+================================================================================
+GETTING STARTED - Question Generation for Your Team
+================================================================================
+
+Hi! I've created comprehensive examples for your team to generate questions
+from Markdown snippets. Here's everything you need:
+
+📚 WHAT I CREATED FOR YOU:
+================================================================================
+
+1. ✅ question_generation_examples.ipynb
+   → Complete Jupyter notebook with 10 working examples
+   → Covers all use cases: single questions, full exams, RAG integration
+   → Ready to run and experiment with
+
+2. ✅ simple_generation_example.py
+   → Python script version (no Jupyter needed)
+   → 6 examples showing different patterns
+   → Run with: python examples/simple_generation_example.py
+
+3. ✅ QUICK_START.md
+   → Quick reference guide
+   → API documentation
+   → Common patterns and troubleshooting
+
+4. ✅ README.md (in this folder)
+   → Setup instructions
+   → Troubleshooting guide
+
+🚀 QUICK START (3 STEPS):
+================================================================================
+
+STEP 1: Setup API Key
+----------------------
+cd /home/toharhymes/work/itmo/llm_tester
+cp .env.example .env
+# Edit .env and add your OPENAI_API_KEY
+
+STEP 2: Choose Your Method
+---------------------------
+
+Option A - Jupyter Notebook (Recommended for learning):
+  jupyter notebook examples/notebooks/question_generation_examples.ipynb
+
+Option B - Python Script (Quick testing):
+  python examples/simple_generation_example.py
+
+Option C - Interactive Python (Direct integration):
+  python
+  >>> from app.core.exam_builder import generate_question
+  >>> q = generate_question("Your text...", question_type="single_choice", language="ru")
+
+STEP 3: Start Generating!
+--------------------------
+See examples below ↓
+
+
+💡 MOST COMMON USE CASE - RAG Integration:
+================================================================================
+
+from app.core.exam_builder import generate_question
+
+# Your snippet from RAG/vector DB
+snippet = """
+Гестационная гипертензия — это артериальное давление ≥140/90 мм рт. ст.,
+впервые выявленное после 20-й недели беременности.
+"""
+
+# Generate question
+question = generate_question(
+    content=snippet,
+    question_type="single_choice",  # or "multiple_choice"
+    difficulty="medium",
+    language="ru"  # or "en"
+)
+
+# Use the question
+print(question['stem'])      # Question text
+print(question['options'])   # ["Option 1", "Option 2", ...]
+print(question['correct'])   # [0] - indices of correct answers
+
+
+📖 KEY FUNCTIONS YOUR TEAM NEEDS:
+================================================================================
+
+1. generate_question(content, **kwargs)
+   → Generate ONE question from a snippet
+   → Perfect for RAG pipelines
+   → Example in notebook: Example 1
+
+2. generate_exam_from_text(markdown_content, total_questions=10, **kwargs)
+   → Generate MULTIPLE questions from longer text
+   → Example in notebook: Example 4
+
+3. generate_exam_from_file(file_path, **kwargs)
+   → Generate from Markdown file
+   → Example in notebook: Example 5
+
+
+🎯 EXAMPLES IN THE NOTEBOOK:
+================================================================================
+
+Example 1:  Single question from snippet (MOST IMPORTANT FOR RAG)
+Example 2:  Multiple-choice questions
+Example 3:  English language questions
+Example 4:  Full exam from text
+Example 5:  Generate from file
+Example 6:  Save and load exams
+Example 7:  Advanced configuration
+Example 8:  Different difficulty levels
+Example 9:  RAG workflow simulation (IMPORTANT FOR YOUR TEAM)
+Example 10: Using YandexGPT
+
+
+⚙️ CONFIGURATION OPTIONS:
+================================================================================
+
+question_type:
+  - "single_choice"     (one correct answer)
+  - "multiple_choice"   (multiple correct answers)
+  - "open_ended"        (free text)
+
+difficulty:
+  - "easy"
+  - "medium"
+  - "hard"
+  - "mixed" (for exams only)
+
+language:
+  - "ru" (Russian)
+  - "en" (English)
+
+provider:
+  - "openai" (default, requires OPENAI_API_KEY)
+  - "yandex" (requires Yandex credentials)
+
+
+❓ TROUBLESHOOTING:
+================================================================================
+
+Problem: "OPENAI_API_KEY not set in environment"
+Solution:
+  1. cp .env.example .env
+  2. Edit .env: add OPENAI_API_KEY=sk-your-key
+  3. Restart Jupyter kernel or Python session
+
+Problem: Questions in wrong language
+Solution:
+  Set language="ru" or language="en" explicitly
+
+Problem: ModuleNotFoundError
+Solution:
+  pip install -r requirements.txt
+
+Problem: Can't find .env file
+Solution:
+  .env must be in project root: /home/toharhymes/work/itmo/llm_tester/.env
+
+
+📂 FILE LOCATIONS:
+================================================================================
+
+Notebooks:
+  /home/toharhymes/work/itmo/llm_tester/examples/notebooks/question_generation_examples.ipynb
+
+Python Script:
+  /home/toharhymes/work/itmo/llm_tester/examples/simple_generation_example.py
+
+Quick Reference:
+  /home/toharhymes/work/itmo/llm_tester/examples/QUICK_START.md
+
+Sample Data:
+  /home/toharhymes/work/itmo/llm_tester/examples/sample_medical.md
+
+Environment Config:
+  /home/toharhymes/work/itmo/llm_tester/.env (create from .env.example)
+
+
+🎓 LEARNING PATH FOR YOUR TEAM:
+================================================================================
+
+1. Start with QUICK_START.md
+   → Read the basic examples
+   → Understand the API
+
+2. Open the Jupyter notebook
+   → Run Example 1 (single question)
+   → Run Example 9 (RAG workflow)
+
+3. Try the Python script
+   → python examples/simple_generation_example.py
+   → See working code patterns
+
+4. Integrate into your RAG pipeline
+   → Use generate_question() on retrieved snippets
+   → See Example 9 in notebook for pattern
+
+
+🔗 NEXT STEPS:
+================================================================================
+
+For your team:
+  1. Everyone: Read QUICK_START.md (5 min)
+  2. Everyone: Run Jupyter notebook Examples 1 and 9 (10 min)
+  3. Integrate: Use generate_question() in RAG pipeline (30 min)
+
+For testing:
+  1. Run: python examples/simple_generation_example.py
+  2. Expected: 6 examples complete successfully
+  3. Output: Questions printed to console
+
+For production:
+  1. Review question quality
+  2. Adjust difficulty and language as needed
+  3. Set up error handling for API calls
+
+
+📞 SUPPORT:
+================================================================================
+
+Documentation:
+  - QUICK_START.md - API reference and patterns
+  - README.md (notebooks/) - Setup and troubleshooting
+  - CLAUDE.md (project root) - Full project documentation
+
+Code Examples:
+  - question_generation_examples.ipynb - Interactive examples
+  - simple_generation_example.py - Script examples
+
+Need help? Check these files first!
+
+
+================================================================================
+HAPPY QUESTION GENERATING! 🚀
+================================================================================
+
+TIP: Start with Example 1 in the notebook - it's the simplest and most
+     important for RAG integration!
