@@ -19,10 +19,11 @@ def safe_join(base_dir: Path, name: str) -> Path:
         ValueError: If resolution escapes the base directory
     """
     base_dir = base_dir.resolve()
-    safe_name = Path(name).name
-    candidate = (base_dir / safe_name).resolve()
+    candidate = (base_dir / name).resolve()
 
-    if not str(candidate).startswith(str(base_dir)):
+    try:
+        candidate.relative_to(base_dir)
+    except ValueError:
         raise ValueError("Invalid path")
 
     return candidate
