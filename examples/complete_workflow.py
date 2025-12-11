@@ -120,7 +120,8 @@ and autonomous systems.
             single_choice_ratio=0.5,
             multiple_choice_ratio=0.3,
             open_ended_ratio=0.2,
-            language="en"
+            language="en",
+            provider="local"
         )
 
         print(f"✓ Generated {len(exam.questions)} questions")

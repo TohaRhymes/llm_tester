@@ -45,7 +45,8 @@ if __name__ == "__main__":
             exam = generate_exam_from_file(
                 str(content_files[0]),
                 total_questions=5,
-                language="en"
+                language="en",
+                provider="local"
             )
             print(f"   ✓ Generated {len(exam.questions)} questions")
             print(f"   Exam ID: {exam.exam_id}")
@@ -74,7 +75,7 @@ if __name__ == "__main__":
             content,
             question_type="single_choice",
             difficulty="medium",
-            provider="openai"
+            provider="local"
         )
 
         print(f"   ✓ Generated question")
@@ -93,7 +94,8 @@ Machine learning is AI that learns from data automatically.
 
         exam = generate_exam_from_text(
             content_text,
-            total_questions=3
+            total_questions=3,
+            provider="local"
         )
 
         print(f"   ✓ Generated {len(exam.questions)} questions from text")

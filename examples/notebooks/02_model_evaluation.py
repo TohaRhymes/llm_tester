@@ -67,9 +67,9 @@ if __name__ == "__main__":
     print(f"\nUsing: {exam_file}")
 
     # Test single model
-    print("\n1. Testing GPT-4o-mini...")
+    print("\n1. Testing GPT-4o-mini (or local if no keys)...")
     try:
-        result = test_model(exam_file, "gpt-4o-mini", "openai")
+        result = test_model(exam_file, "local-stub", "local")
         analyze_result(result)
     except Exception as e:
         print(f"   Error: {e}")
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     try:
         comparison = compare_models(
             exam_file,
-            models=[{"model_name": "gpt-4o-mini", "provider": "openai"}]
+            models=[{"model_name": "local-stub", "provider": "local"}]
         )
         print_comparison(comparison)
     except Exception as e:
