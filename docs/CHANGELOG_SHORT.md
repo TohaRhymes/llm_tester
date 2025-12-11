@@ -1,5 +1,6 @@
-# Work Summary (Architecture, Design, Research)
+# Project Summary (Architecture, Design, Research)
 
-- Architecture: added provider-agnostic LLM layer with stub fallback; validators now enforce grounding/coverage/dedup; import endpoint supports user-supplied exams; Docker + Compose ship a reproducible API with configurable data paths.
-- Design: refreshed UI with gov-style blue palette, provider/model selectors, and in-app exam import panel; generation form supports count-based config, language, provider, and model selection.
-- Research enablement: validation metrics (grounding ratio/section coverage) built into generation; scripts/tests cover provider stub and import flows; foundation laid for model evaluation endpoints and research workflows.***
+- Architecture: FastAPI service for exam generation/grading; provider-agnostic LLM layer (OpenAI/Yandex/local stub); validation pipeline (schema, source refs, dedup, grounding); exam import/export; Docker/Compose for reproducible runs.
+- Core flows: parse markdown → generate questions (counts/ratios, difficulty, language, provider/model) → validate → persist exam; grade answers (local for choice, LLM for open-ended); import existing exams; list/download artifacts.
+- Design/UI: web client with gov-inspired palette, provider/model selectors, count-based controls, in-app exam import, and basic exam viewer/test-taker.
+- Research tooling: evaluation scripts for generation/model answer benchmarking, grounding/coverage metrics in validation, stub provider for deterministic offline tests; support for multi-model comparisons and grading consistency checks planned.
