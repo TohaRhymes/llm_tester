@@ -1,0 +1,16 @@
+.git
+__pycache__/
+.pytest_cache/
+.venv
+venv
+data/out
+data/uploads
+data/results
+*.pyc
+*.pyo
+*.pyd
+*.swp
+*.swo
+*.egg-info
+dist
+build

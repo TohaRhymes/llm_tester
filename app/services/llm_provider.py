@@ -66,24 +66,25 @@ class LocalLLMClient:
     ) -> Dict[str, Any]:
         seed = int(hashlib.md5(content.encode()).hexdigest(), 16) % 1000
         self._counter += 1
-        stem = f"[{language.upper()}][{difficulty}] Based on provided text {seed}, what is the key fact? #{self._counter}"
+        keyword = content.split()[0] if content else "content"
+        stem = f"[{language.upper()}][{difficulty}] Based on {keyword} {seed}, what is the key fact? #{self._counter}"
 
         if question_type == "open_ended":
             return {
                 "stem": stem + " Explain briefly?",
-                "reference_answer": f"The key fact from segment {seed}.",
+                "reference_answer": f"The key fact from segment {keyword} {seed}.",
                 "rubric": [
-                    "Mentions the key fact",
+                    f"Mentions the key fact about {keyword}",
                     "Relates it to the source text",
                     "States in 1-2 sentences"
                 ]
             }
 
         options = [
-            f"Fact {seed % 4}",
-            f"Fact {(seed + 1) % 5}",
-            f"Fact {(seed + 2) % 6}",
-            f"Fact {(seed + 3) % 7}"
+            f"{keyword} fact {seed % 4}",
+            f"{keyword} fact {(seed + 1) % 5}",
+            f"{keyword} fact {(seed + 2) % 6}",
+            f"{keyword} fact {(seed + 3) % 7}"
         ]
 
         correct = [0] if question_type == "single_choice" else [0, 1]

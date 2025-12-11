@@ -83,10 +83,15 @@ class QuestionValidator:
         )
 
     def _extract_terms(self, text: str) -> Set[str]:
-        """Return lowercase keywords >=4 chars."""
+        """Return lowercase keywords >=4 chars (excluding simple stopwords)."""
         import re
 
-        return {t for t in re.findall(r"[A-Za-zА-Яа-я0-9]{4,}", text.lower())}
+        stopwords = {"about", "question", "answer", "what", "which", "explain", "select", "choose"}
+        return {
+            t
+            for t in re.findall(r"[A-Za-zА-Яа-я0-9]{4,}", text.lower())
+            if t not in stopwords
+        }
 
     def _overlap_terms(self, text: str, doc_terms: Set[str]) -> int:
         terms = self._extract_terms(text)

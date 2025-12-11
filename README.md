@@ -41,6 +41,11 @@ FastAPI service that generates educational exams from Markdown content and evalu
 - `GET /api/exams` and `GET /api/exams/{exam_id}` — list/read generated exams.
 - Docs at `/docs`, `/redoc`, OpenAPI at `/openapi.json`.
 
+## Docker
+- Build: `docker build -t llm-tester .`
+- Run: `docker run -p 8000:8000 --env-file .env -v $(pwd)/data:/app/data llm-tester`
+- Environment: set `OPENAI_API_KEY` or `DEFAULT_PROVIDER=local` for stubbed mode; `DATA_DIR/OUTPUT_DIR/UPLOADS_DIR` are respected inside the container.
+
 ## Typical Flows
 - Generate via API:
   ```bash
