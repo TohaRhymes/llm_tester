@@ -1,8 +1,23 @@
-# Plan (including evaluation)
+# Plan (roadmap + evaluation)
 
-- Stabilize flows: keep soft validation but surface metrics (grounded ratio, coverage) in responses/UI; add simple retries with clearer logs.
-- Research/evaluation: benchmark generation quality and model answers across providers; track grounding, answerability, coherence, grading consistency, and cost. Provide comparison reports and hooks for export.
-- API/UI polish: expose validation metrics, model comparison results; allow downloading/importing exams/grades; ensure pagination and sorting are robust.
-- Security/safety: path sanitization (done), provider allowlist, rate-limit hooks, safer error messaging; optional auth when moving beyond demo.
-- Ops: add basic health/log dashboards; keep Docker/Compose single service with configurable ports/paths.
-- Docs/examples: maintain minimal doc set (Architecture, Solution, Plan); keep examples defaulting to local provider, plus one notebook showcasing generation; keep Postman collection aligned with current endpoints/payloads.
+## Short Term
+- Surface validation metrics (grounded ratio, coverage) in `/api/generate` response and UI.
+- Harden exams listing (filters by language/provider) and add download actions.
+- Postman/CLI parity: keep provider/model/local stub options consistent; smoke-test collection.
+
+## Research & Evaluation
+- Benchmark generation quality across providers/models on shared corpora; metrics: grounding overlap, answerability, coherence, difficulty balance, cost/question.
+- Model answer eval: accuracy/AI-pass by question type, rubric score distribution, error modes.
+- Grading consistency: inter-run variance for open-ended (same prompts), partial-credit stability for multiple choice.
+- Reporting: JSON exports + simple visual summaries; track seeds/configs for reproducibility.
+
+## Medium Term
+- Expose validation metrics to clients; optional stricter mode (fail on ungrounded).
+- Add lightweight auth/rate-limit hooks (opt-in) and configurable CORS.
+- RAG hook: allow passing pre-retrieved chunks, later plug retriever.
+- Storage abstraction to swap filesystem for DB/object store when needed.
+
+## Long Term
+- Human-in-the-loop review for generated questions and grading overrides.
+- Advanced evaluation: adversarial prompts, robustness to prompt injection, domain-specific benchmarks.
+- CI checks: stub-based golden tests for prompts/validators, contract tests for API.
