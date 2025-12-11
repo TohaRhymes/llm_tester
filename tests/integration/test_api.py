@@ -169,7 +169,8 @@ Rest and hydration are important for recovery.
             "config": {
                 "total_questions": 3,
                 "single_choice_ratio": 0.7,
-                "multiple_choice_ratio": 0.3
+                "multiple_choice_ratio": 0.3,
+                "provider": "local"
             }
         }
 

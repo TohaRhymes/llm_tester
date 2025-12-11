@@ -165,6 +165,11 @@ class ExamConfig(BaseModel):
             self.open_ended_ratio = self.open_ended_count / total_count
         else:
             # Ratio-based mode: validate ratios and calculate counts
+            provided_ratio_fields = getattr(self, "__pydantic_fields_set__", set())
+            if 'open_ended_ratio' not in provided_ratio_fields:
+                remainder = 1.0 - (self.single_choice_ratio + self.multiple_choice_ratio)
+                self.open_ended_ratio = max(0.0, remainder)
+
             # Validate ratios sum to 1.0
             total_ratio = self.single_choice_ratio + self.multiple_choice_ratio + self.open_ended_ratio
             if abs(total_ratio - 1.0) > 0.01:
