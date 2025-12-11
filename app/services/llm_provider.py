@@ -55,6 +55,7 @@ class LocalLLMClient:
 
     def __init__(self, model: str = "local-stub"):
         self.model = model
+        self._counter = 0
 
     def generate_question(
         self,
@@ -64,7 +65,8 @@ class LocalLLMClient:
         language: str = "en"
     ) -> Dict[str, Any]:
         seed = int(hashlib.md5(content.encode()).hexdigest(), 16) % 1000
-        stem = f"[{language.upper()}][{difficulty}] Based on provided text {seed}, what is the key fact?"
+        self._counter += 1
+        stem = f"[{language.upper()}][{difficulty}] Based on provided text {seed}, what is the key fact? #{self._counter}"
 
         if question_type == "open_ended":
             return {

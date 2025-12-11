@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.config import settings
-from app.api import health, grade, generate, files
+from app.api import health, grade, generate, files, import_exam
 from pathlib import Path
 
 # Create FastAPI app
@@ -32,6 +32,7 @@ app.include_router(health.router)
 app.include_router(grade.router)
 app.include_router(generate.router)
 app.include_router(files.router)
+app.include_router(import_exam.router)
 
 # Mount static files
 app.mount("/", StaticFiles(directory="static", html=True), name="static")

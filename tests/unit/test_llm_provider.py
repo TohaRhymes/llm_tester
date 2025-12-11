@@ -16,7 +16,7 @@ def make_sample_doc():
             content="Alpha beta gamma.",
             level=2,
             start_pos=0,
-            end_pos=20,
+            end_pos=len("Alpha beta gamma."),
         )
     ]
     return ParsedDocument(title="Doc", sections=sections, source_text="Alpha beta gamma.")

@@ -9,6 +9,7 @@ from app.models.schemas import (
     Question, Exam, ExamConfig, SourceReference, QuestionMeta
 )
 from app.services.llm_provider import get_llm_client, LLMProvider, ProviderName
+from app.core.validator import QuestionValidator
 
 
 class QuestionGenerator:
@@ -18,12 +19,14 @@ class QuestionGenerator:
         self,
         provider: Optional[ProviderName] = None,
         model_name: Optional[str] = None,
-        llm_client: Optional[LLMProvider] = None
+        llm_client: Optional[LLMProvider] = None,
+        validator: Optional[QuestionValidator] = None
     ):
         """Initialize generator with configurable LLM provider."""
         self.provider_name = provider or settings.default_provider
         self.model_name = model_name
         self.llm_client = llm_client
+        self.validator = validator or QuestionValidator()
 
     def generate(
         self,
@@ -100,6 +103,14 @@ class QuestionGenerator:
             )
             questions.append(question)
             question_counter += 1
+
+        # Validate generated questions
+        validation = self.validator.validate_exam(
+            Exam(exam_id=exam_id, questions=questions, config_used=config),
+            document
+        )
+        if not validation.valid:
+            raise RuntimeError(f"Validation failed: {validation.issues}")
 
         # Shuffle questions if seed is set (for determinism testing)
         if config.seed is not None:

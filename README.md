@@ -35,6 +35,7 @@ FastAPI service that generates educational exams from Markdown content and evalu
 - `GET /health` — service liveness.
 - `POST /api/generate` — generate an exam from Markdown (`markdown_content` + optional `config` supporting counts or ratios, difficulty, language, seed, provider/model_name). Persists to `data/out/exam_<id>.json`.
 - `POST /api/grade` — grade answers for an `exam_id`; multiple choice graded locally with partial credit, open-ended graded via LLM. Persists to `data/out/grade_<id>.json`.
+- `POST /api/exams/import` — import a user-supplied exam JSON and store it under `data/out/`.
 - `POST /api/upload` — upload `.md` into `data/uploads/`.
 - `GET /api/files` and `GET /api/files/{filename}` — list/read uploaded Markdown.
 - `GET /api/exams` and `GET /api/exams/{exam_id}` — list/read generated exams.
@@ -152,5 +153,6 @@ comparison = compare_models(
 ## Notes
 - OpenAI or Yandex API key required depending on provider choice
 - If provider credentials are missing, the service falls back to a local stub LLM for development (set `DEFAULT_PROVIDER=local` explicitly for offline use)
+- Generated exams run through a basic validator (schema sanity, source refs, deduplication) before being returned
 - CORS is wide open and there is no authentication; tighten before production
 - Exams/grades are stored on disk; clean up `data/out/` and `data/uploads/` as needed
