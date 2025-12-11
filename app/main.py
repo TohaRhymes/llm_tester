@@ -4,9 +4,16 @@ Main FastAPI application.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+import logging
 from app.config import settings
 from app.api import health, grade, generate, files, import_exam
 from pathlib import Path
+
+# Basic logging for container/stdout
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+)
 
 # Create FastAPI app
 app = FastAPI(

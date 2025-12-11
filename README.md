@@ -48,6 +48,7 @@ FastAPI service that generates educational exams from Markdown content and evalu
 
 ### Docker Compose
 - `docker-compose up --build` to start the API with data volume mounted (`./data -> /app/data`) and env from `.env`.
+- Logs: streamed to stdout; view with `docker logs <container>` or `docker-compose logs -f`.
 
 ## Typical Flows
 - Generate via API:

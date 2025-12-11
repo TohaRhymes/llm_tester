@@ -1,6 +1,7 @@
 """
 Question generator using LLM provider for creating exam questions from educational content.
 """
+import logging
 import random
 from typing import List, Optional
 from app.config import settings
@@ -10,6 +11,9 @@ from app.models.schemas import (
 )
 from app.services.llm_provider import get_llm_client, LLMProvider, ProviderName
 from app.core.validator import QuestionValidator
+
+
+logger = logging.getLogger(__name__)
 
 
 class QuestionGenerator:
@@ -64,6 +68,18 @@ class QuestionGenerator:
         num_multiple = config.multiple_choice_count or 0
         num_open_ended = config.open_ended_count or 0
 
+        logger.info(
+            "Generating exam %s with provider=%s model=%s counts(single=%s,multi=%s,open=%s) language=%s difficulty=%s",
+            exam_id,
+            getattr(config, "provider", self.provider_name),
+            getattr(config, "model_name", self.model_name),
+            num_single,
+            num_multiple,
+            num_open_ended,
+            getattr(config, "language", "en"),
+            getattr(config, "difficulty", "mixed"),
+        )
+
         validation = None
         questions: List[Question] = []
         llm_client = self._get_llm_client(config)
@@ -117,15 +133,29 @@ class QuestionGenerator:
                 document
             )
             if validation.valid or not self.strict_validation:
+                logger.info(
+                    "Validation passed for exam %s (grounded_ratio=%.2f, section_coverage=%.2f, attempt=%d)",
+                    exam_id,
+                    getattr(validation, "grounded_ratio", 0.0),
+                    getattr(validation, "section_coverage", 0.0),
+                    attempt + 1,
+                )
                 break
 
             # Retry with new seed when not provided
             if config.seed is None and attempt < self.max_validation_attempts - 1:
+                logger.warning(
+                    "Validation failed for exam %s on attempt %d: %s. Retrying with a new seed.",
+                    exam_id,
+                    attempt + 1,
+                    validation.issues,
+                )
                 random.seed()
                 continue
             break
 
         if validation and not validation.valid and self.strict_validation:
+            logger.error("Validation failed after %d attempts for exam %s: %s", self.max_validation_attempts, exam_id, validation.issues)
             raise RuntimeError("Validation failed after retries")
 
         # Shuffle questions if seed is set (for determinism testing)
