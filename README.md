@@ -43,11 +43,11 @@ FastAPI service that generates educational exams from Markdown content and evalu
 
 ## Docker
 - Build: `docker build -t llm-tester .`
-- Run: `docker run -p 8000:8000 --env-file .env -v $(pwd)/data:/app/data llm-tester`
+- Run: `docker run -p 8000:8000 --env-file .env -v $(pwd)/data:/app/data llm-tester` (override port via `-p 9000:8000` or set `PORT` in `.env`)
 - Environment: set `OPENAI_API_KEY` or `DEFAULT_PROVIDER=local` for stubbed mode; `DATA_DIR/OUTPUT_DIR/UPLOADS_DIR` are respected inside the container.
 
 ### Docker Compose
-- `docker-compose up --build` to start the API with data volume mounted (`./data -> /app/data`) and env from `.env`.
+- `docker-compose up --build` to start the API with data volume mounted (`./data -> /app/data`) and env from `.env`. Override port via `PORT` in `.env` (default 8000).
 - Logs: streamed to stdout; view with `docker logs <container>` or `docker-compose logs -f`.
 
 ## Typical Flows
