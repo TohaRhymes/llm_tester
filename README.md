@@ -164,3 +164,4 @@ comparison = compare_models(
 - Generated exams run through a validator (schema sanity, source refs, deduplication, grounding overlap with source) before being returned; validation surfaces grounded ratio and section coverage
 - CORS is wide open and there is no authentication; tighten before production
 - Exams/grades are stored on disk; clean up `data/out/` and `data/uploads/` as needed
+- Validation failures trigger a few automatic regeneration attempts; if they persist, the API returns a generic validation error (check server logs for details)

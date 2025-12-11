@@ -20,13 +20,17 @@ class QuestionGenerator:
         provider: Optional[ProviderName] = None,
         model_name: Optional[str] = None,
         llm_client: Optional[LLMProvider] = None,
-        validator: Optional[QuestionValidator] = None
+        validator: Optional[QuestionValidator] = None,
+        max_validation_attempts: int = 3,
+        strict_validation: bool = True
     ):
         """Initialize generator with configurable LLM provider."""
         self.provider_name = provider or settings.default_provider
         self.model_name = model_name
         self.llm_client = llm_client
         self.validator = validator or QuestionValidator()
+        self.max_validation_attempts = max_validation_attempts
+        self.strict_validation = strict_validation
 
     def generate(
         self,
@@ -60,57 +64,69 @@ class QuestionGenerator:
         num_multiple = config.multiple_choice_count or 0
         num_open_ended = config.open_ended_count or 0
 
-        # Generate questions
+        validation = None
         questions: List[Question] = []
-        question_counter = 0
         llm_client = self._get_llm_client(config)
 
-        # Generate single choice questions
-        for i in range(num_single):
-            question = self._generate_single_question(
-                document=document,
-                question_type="single_choice",
-                question_num=question_counter,
-                difficulty=config.difficulty,
-                config=config,
-                llm_client=llm_client
-            )
-            questions.append(question)
-            question_counter += 1
+        for attempt in range(self.max_validation_attempts):
+            questions = []
+            question_counter = 0
 
-        # Generate multiple choice questions
-        for i in range(num_multiple):
-            question = self._generate_single_question(
-                document=document,
-                question_type="multiple_choice",
-                question_num=question_counter,
-                difficulty=config.difficulty,
-                config=config,
-                llm_client=llm_client
-            )
-            questions.append(question)
-            question_counter += 1
+            # Generate single choice questions
+            for i in range(num_single):
+                question = self._generate_single_question(
+                    document=document,
+                    question_type="single_choice",
+                    question_num=question_counter,
+                    difficulty=config.difficulty,
+                    config=config,
+                    llm_client=llm_client
+                )
+                questions.append(question)
+                question_counter += 1
 
-        # Generate open-ended questions
-        for i in range(num_open_ended):
-            question = self._generate_single_question(
-                document=document,
-                question_type="open_ended",
-                question_num=question_counter,
-                difficulty=config.difficulty,
-                config=config,
-                llm_client=llm_client
-            )
-            questions.append(question)
-            question_counter += 1
+            # Generate multiple choice questions
+            for i in range(num_multiple):
+                question = self._generate_single_question(
+                    document=document,
+                    question_type="multiple_choice",
+                    question_num=question_counter,
+                    difficulty=config.difficulty,
+                    config=config,
+                    llm_client=llm_client
+                )
+                questions.append(question)
+                question_counter += 1
 
-        # Validate generated questions
-        validation = self.validator.validate_exam(
-            Exam(exam_id=exam_id, questions=questions, config_used=config),
-            document
-        )
-        if not validation.valid:
-            raise RuntimeError(f"Validation failed: {validation.issues}")
+            # Generate open-ended questions
+            for i in range(num_open_ended):
+                question = self._generate_single_question(
+                    document=document,
+                    question_type="open_ended",
+                    question_num=question_counter,
+                    difficulty=config.difficulty,
+                    config=config,
+                    llm_client=llm_client
+                )
+                questions.append(question)
+                question_counter += 1
+
+            # Validate generated questions
+            validation = self.validator.validate_exam(
+                Exam(exam_id=exam_id, questions=questions, config_used=config),
+                document
+            )
+            if validation.valid or not self.strict_validation:
+                break
+
+            # Retry with new seed when not provided
+            if config.seed is None and attempt < self.max_validation_attempts - 1:
+                random.seed()
+                continue
+            break
+
+        if validation and not validation.valid and self.strict_validation:
+            raise RuntimeError("Validation failed after retries")
 
         # Shuffle questions if seed is set (for determinism testing)
         if config.seed is not None:

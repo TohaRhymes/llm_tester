@@ -53,7 +53,7 @@ async def generate_exam(request: GenerateRequest):
     except RuntimeError as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Generation failed: {str(e)}"
+            detail="Generation failed validation. Please retry with more source content or different counts."
         )
     except Exception as e:
         raise HTTPException(
