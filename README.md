@@ -152,11 +152,10 @@ comparison = compare_models(
 )
 ```
 
-## 📚 Documentation
-
-- **📖 Architecture:** `docs/ARCHITECTURE.md`
-- **📌 Solution snapshot:** `docs/SOLUTION.md`
-- **🗺️ Plan (incl. evaluation):** `docs/PLAN.md`
+## 📚 Documentation (core)
+- Architecture: `docs/ARCHITECTURE.md`
+- Current solution: `docs/SOLUTION.md`
+- Plan + evaluation: `docs/PLAN.md`
 
 ## Notes
 - OpenAI or Yandex API key required depending on provider choice
