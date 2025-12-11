@@ -56,6 +56,7 @@ def test_validator_accepts_well_formed_exam():
     result = validator.validate_exam(exam, doc)
     assert result.valid
     assert result.issues == []
+    assert result.grounded_ratio == 1.0
 
 
 def test_validator_detects_duplicate_stems():
@@ -96,3 +97,19 @@ def test_validator_flags_out_of_bounds_refs():
     result = validator.validate_exam(exam, doc)
     assert not result.valid
     assert any("out of source bounds" in issue for issue in result.issues)
+
+
+def test_validator_flags_ungrounded_questions():
+    validator = QuestionValidator()
+    q = make_choice_question(stem="Unrelated question about stars")
+    exam = Exam(
+        exam_id="ex-ungrounded",
+        questions=[q],
+        config_used=ExamConfig(total_questions=1),
+    )
+    doc = make_doc()
+
+    result = validator.validate_exam(exam, doc)
+    assert not result.valid
+    assert any("ungrounded" in issue for issue in result.issues)
+    assert result.grounded_ratio == 0.0

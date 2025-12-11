@@ -153,6 +153,6 @@ comparison = compare_models(
 ## Notes
 - OpenAI or Yandex API key required depending on provider choice
 - If provider credentials are missing, the service falls back to a local stub LLM for development (set `DEFAULT_PROVIDER=local` explicitly for offline use)
-- Generated exams run through a basic validator (schema sanity, source refs, deduplication) before being returned
+- Generated exams run through a validator (schema sanity, source refs, deduplication, grounding overlap with source) before being returned; validation surfaces grounded ratio and section coverage
 - CORS is wide open and there is no authentication; tighten before production
 - Exams/grades are stored on disk; clean up `data/out/` and `data/uploads/` as needed
