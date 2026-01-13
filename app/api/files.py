@@ -15,6 +15,9 @@ router = APIRouter()
 UPLOAD_DIR = Path(settings.uploads_dir)
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
+# Security: Maximum file upload size (10MB)
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB in bytes
+
 
 @router.post("/api/upload", tags=["files"])
 async def upload_file(file: UploadFile = File(...)):
@@ -42,6 +45,14 @@ async def upload_file(file: UploadFile = File(...)):
 
     try:
         content = await file.read()
+
+        # Security: Validate file size
+        if len(content) > MAX_FILE_SIZE:
+            raise HTTPException(
+                status_code=413,
+                detail=f"File too large. Maximum size is {MAX_FILE_SIZE / (1024 * 1024):.0f}MB"
+            )
+
         with open(file_path, 'wb') as f:
             f.write(content)
 

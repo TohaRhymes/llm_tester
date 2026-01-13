@@ -64,7 +64,8 @@ class LocalLLMClient:
         difficulty: str = "medium",
         language: str = "en"
     ) -> Dict[str, Any]:
-        seed = int(hashlib.md5(content.encode()).hexdigest(), 16) % 1000
+        # MD5 used for deterministic seed generation only, not cryptography
+        seed = int(hashlib.md5(content.encode(), usedforsecurity=False).hexdigest(), 16) % 1000
         self._counter += 1
         keyword = content.split()[0] if content else "content"
         stem = f"[{language.upper()}][{difficulty}] Based on {keyword} {seed}, what is the key fact? #{self._counter}"

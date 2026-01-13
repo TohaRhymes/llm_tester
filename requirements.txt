@@ -25,6 +25,9 @@ requests==2.32.3
 # Uploads
 python-multipart==0.0.9
 
+# Rate limiting
+slowapi==0.1.9
+
 # Future RAG dependencies (commented for now)
 # sentence-transformers==2.3.1
 # faiss-cpu==1.7.4

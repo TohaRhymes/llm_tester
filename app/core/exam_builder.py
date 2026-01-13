@@ -135,8 +135,10 @@ class ExamBuilder:
         # Generate exam
         if exam_id is None:
             import hashlib
+            # MD5 used for ID generation only, not cryptography
             exam_id = "ex-" + hashlib.md5(
-                f"{markdown_content[:100]}{total_questions}".encode()
+                f"{markdown_content[:100]}{total_questions}".encode(),
+                usedforsecurity=False
             ).hexdigest()[:8]
 
         exam = self.generator.generate(document, config, exam_id)
