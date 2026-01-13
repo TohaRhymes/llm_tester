@@ -152,15 +152,51 @@ comparison = compare_models(
 )
 ```
 
-## 📚 Documentation (core)
-- Architecture: `docs/ARCHITECTURE.md`
-- Current solution: `docs/SOLUTION.md`
-- Plan + evaluation: `docs/PLAN.md`
+## Frontend Architecture
+
+The web UI has been completely refactored into a clean, modular architecture:
+
+- **HTML**: Reduced from 879 to 170 lines (-81%)
+- **CSS**: Extracted to `static/css/style.css` (225 lines)
+- **JavaScript**: Modularized into 6 files (953 lines total):
+  - `api-client.js` - Centralized API communication with APIError class
+  - `ui-utils.js` - UI helpers, validation, and user-friendly error messages
+  - `file-manager.js` - File upload and management
+  - `exam-manager.js` - Exam generation and listing with pagination
+  - `test-taker.js` - Test taking workflow and grading display
+  - `main.js` - Application initialization
+
+**Key Features**:
+- Professional error handling (no more `alert()` calls)
+- Input validation before API calls
+- Loading states with spinners
+- Smart error message mapping (HTTP codes → user-friendly text)
+- Modular, maintainable, testable code
+
+See [docs/FRONTEND.md](docs/FRONTEND.md) for complete architecture documentation.
+
+## 📚 Documentation
+
+**Getting Started**:
+- [Quick Start Guide](docs/QUICK_START.md) - 5-minute setup
+- [Scripts Guide](docs/SCRIPTS_GUIDE.md) - Detailed guide to all tools
+- [Evaluation Guide](docs/EVALUATION.md) - Complete evaluation workflows
+
+**Architecture & Development**:
+- [Architecture](docs/ARCHITECTURE.md) - System architecture and design
+- [Solution Overview](docs/SOLUTION.md) - API reference and flows
+- [Implementation Plan](docs/PLAN.md) - Development roadmap
+- [Frontend Architecture](docs/FRONTEND.md) - Modular UI design
+
+**Contributing & Security**:
+- [Contributing Guide](CONTRIBUTING.md) - TDD/BDD workflow and guidelines
+- [Security Policy](SECURITY.md) - Security measures and vulnerability reporting
+- [Changelog](CHANGELOG.md) - Version history and migration guides
 
 ## Notes
 - OpenAI or Yandex API key required depending on provider choice
 - If provider credentials are missing, the service falls back to a local stub LLM for development (set `DEFAULT_PROVIDER=local` explicitly for offline use)
 - Generated exams run through a validator (schema sanity, source refs, deduplication, grounding overlap with source) before being returned; validation surfaces grounded ratio and section coverage
-- CORS is wide open and there is no authentication; tighten before production
+- CORS is configured via `CORS_ORIGINS` environment variable (defaults to localhost); there is no authentication - add auth middleware before production
 - Exams/grades are stored on disk; clean up `data/out/` and `data/uploads/` as needed
 - Validation failures trigger a few automatic regeneration attempts; if they persist, the API returns a generic validation error (check server logs for details)

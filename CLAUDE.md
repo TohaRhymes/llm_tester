@@ -69,6 +69,8 @@ pytest --cov=app --cov-report=html tests/
   /api                    # FastAPI endpoints
     generate.py          # POST /api/generate - exam generation
     grade.py             # POST /api/grade - answer grading
+    files.py             # POST /api/upload, GET /api/files
+    exams.py             # GET /api/exams, POST /api/exams/import
     health.py            # GET /health
   /core                   # Core business logic
     md_ingest.py         # Markdown parser → sections/chunks
@@ -76,23 +78,53 @@ pytest --cov=app --cov-report=html tests/
     retriever.py         # Simple RAG retrieval + embeddings
     qgen.py              # Question generation (MCQ/SCQ)
     grader.py            # Answer validation against keys
-    schemas.py           # Pydantic models for API contracts
-    config.py            # YAML config parsing
+    exam_builder.py      # Exam construction and validation
+  /models                 # Pydantic schemas
+    schemas.py           # API contracts and data models
   /services
     openai_client.py     # OpenAI API wrapper (chat + embeddings)
-    autocommit.py        # Auto-commit to GitHub after operations
-  /templates
-    prompts.md           # Prompt templates for generation
-  /examples
-    config.example.yaml  # Example configuration
-    sample_med.md        # Sample medical content
-    sample_exam.json     # Example exam output
+    yandex_client.py     # YandexGPT API wrapper
+    model_answer_tester.py  # Model answer evaluation
+  /utils
+    file_utils.py        # File operations with path safety
+/static                   # Frontend (modular architecture)
+  index.html             # 170 lines - Clean HTML structure
+  /css
+    style.css            # 225 lines - Extracted styles
+  /js                    # 953 lines total - 6 modules
+    api-client.js        # API communication with APIError class
+    ui-utils.js          # UI helpers, validation, error messages
+    file-manager.js      # File upload and management
+    exam-manager.js      # Exam generation and listing
+    test-taker.js        # Test taking and grading
+    main.js              # Application initialization
+/data                     # Runtime data (not in git)
+  /uploads               # Uploaded Markdown files
+  /out                   # Generated exams and grading outputs
 /tests
   /unit                  # pytest unit tests (TDD approach)
+    test_security.py     # Security-specific tests (CORS, file limits, etc.)
   /integration           # End-to-end API tests
   /bdd
     /features            # Gherkin .feature files
     /steps               # Step definitions
+/docs                     # Documentation
+  ARCHITECTURE.md        # System architecture
+  SOLUTION.md            # API reference and flows
+  PLAN.md                # Development roadmap
+  FRONTEND.md            # Modular UI architecture (NEW)
+  QUICK_START.md         # 5-minute setup guide
+  SCRIPTS_GUIDE.md       # Tool and script documentation
+  EVALUATION.md          # Evaluation workflows
+/examples
+  /notebooks             # Jupyter-friendly examples
+    01_question_generation.py
+    02_model_evaluation.py
+  config.example.yaml    # Example configuration
+  medical_content.md     # Sample medical content
+/scripts
+  evaluate_models.py     # Question generation benchmarking
+  test_model_answers.py  # Model answer evaluation CLI
 ```
 
 ### Key Components
@@ -117,6 +149,20 @@ pytest --cov=app --cov-report=html tests/
 - Validates answers against correct indices
 - Supports partial credit for multiple_choice questions
 - Returns per-question and summary results
+
+**Frontend Architecture** (static/):
+- **Modular JavaScript**: 6 separate modules with clear responsibilities
+- **api-client.js**: Centralized API communication with custom APIError class
+- **ui-utils.js**: Reusable UI helpers, validation, and smart error messages
+- **file-manager.js**: File upload and management operations
+- **exam-manager.js**: Exam generation, listing, and pagination
+- **test-taker.js**: Test taking workflow and grading display
+- **main.js**: Application initialization and tab management
+- **Professional UX**: Loading states, input validation, user-friendly error messages
+- **No alert() calls**: All feedback through consistent UI components
+- **Error Mapping**: HTTP status codes → user-friendly messages (413 → "File too large. Maximum size is 10MB.")
+
+See [docs/FRONTEND.md](docs/FRONTEND.md) for complete architecture documentation.
 
 ### API Contracts
 
@@ -210,9 +256,14 @@ Environment variables (.env):
 
 **Security Considerations**:
 - Never commit .env file (contains API keys)
-- Validate all file paths to prevent directory traversal
+- **CORS**: Configured via `CORS_ORIGINS` environment variable (defaults to localhost, not wildcard)
+- **File Upload Limits**: 10MB maximum file size enforced
+- **Path Traversal**: All file paths validated using safe_join utility
+- **Rate Limiting**: Implemented using slowapi (configurable per endpoint)
+- **MD5 Usage**: All hashlib.md5 calls use `usedforsecurity=False` flag
 - Sanitize user inputs in config parsing
-- Rate limit API calls if deploying publicly
+- Security tests in tests/unit/test_security.py verify all protections
+- See [SECURITY.md](SECURITY.md) for complete security policy and audit results
 
 ## Medical Content Context
 
