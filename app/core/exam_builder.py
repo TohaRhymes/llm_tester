@@ -204,7 +204,8 @@ class QuestionFactory:
         difficulty: str = "medium",
         provider: Literal["openai", "yandex"] = "openai",
         model_name: Optional[str] = None,
-        language: str = "en"
+        language: str = "en",
+        prompt_variant: str = "default"
     ) -> Dict[str, Any]:
         """
         Generate a single question from content.
@@ -245,7 +246,8 @@ class QuestionFactory:
             content=content,
             question_type=question_type,
             difficulty=difficulty,
-            language=language
+            language=language,
+            prompt_variant=prompt_variant
         )
 
 

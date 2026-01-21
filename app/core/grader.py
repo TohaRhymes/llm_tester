@@ -171,7 +171,13 @@ class Grader:
                 given=None,
                 given_text="",
                 partial_credit=0.0,
-                feedback="No answer provided."
+                feedback="No answer provided.",
+                rubric_scores=[0 for _ in (question.rubric or [])],
+                metrics={
+                    "rubric_coverage": 0.0,
+                    "reference_overlap": 0.0,
+                    "answer_length": 0.0,
+                }
             )
 
         try:
@@ -186,6 +192,12 @@ class Grader:
 
             # Determine if "correct" (>= 0.7 score)
             is_correct = grading_result["score"] >= 0.7
+            metrics = self._compute_open_ended_metrics(
+                grading_result["rubric_scores"],
+                question.rubric,
+                student_answer.text_answer,
+                question.reference_answer,
+            )
 
             return QuestionResult(
                 question_id=question.id,
@@ -194,7 +206,9 @@ class Grader:
                 given=None,
                 given_text=student_answer.text_answer,
                 partial_credit=round(grading_result["score"], 4),
-                feedback=grading_result["feedback"]
+                feedback=grading_result["feedback"],
+                rubric_scores=grading_result["rubric_scores"],
+                metrics=metrics
             )
 
         except Exception as e:
@@ -206,8 +220,50 @@ class Grader:
                 given=None,
                 given_text=student_answer.text_answer,
                 partial_credit=0.0,
-                feedback=f"Grading failed: {str(e)}"
+                feedback=f"Grading failed: {str(e)}",
+                rubric_scores=[0 for _ in (question.rubric or [])],
+                metrics={
+                    "rubric_coverage": 0.0,
+                    "reference_overlap": 0.0,
+                    "answer_length": float(len(student_answer.text_answer.split())) if student_answer.text_answer else 0.0,
+                }
             )
+
+    def _compute_open_ended_metrics(
+        self,
+        rubric_scores: List[int],
+        rubric: Optional[List[str]],
+        student_answer: str,
+        reference_answer: Optional[str],
+    ) -> Dict[str, float]:
+        """Compute open-ended grading metrics."""
+        rubric_len = len(rubric_scores) if rubric_scores else 0
+        rubric_coverage = sum(rubric_scores) / rubric_len if rubric_len else 0.0
+        answer_length = float(len(student_answer.split())) if student_answer else 0.0
+
+        reference_overlap = 0.0
+        if reference_answer:
+            ref_terms = self._extract_terms(reference_answer)
+            student_terms = self._extract_terms(student_answer)
+            if ref_terms:
+                reference_overlap = len(ref_terms & student_terms) / len(ref_terms)
+
+        return {
+            "rubric_coverage": round(rubric_coverage, 4),
+            "reference_overlap": round(reference_overlap, 4),
+            "answer_length": answer_length,
+        }
+
+    def _extract_terms(self, text: str) -> set[str]:
+        """Extract lowercase terms for overlap scoring."""
+        import re
+
+        stopwords = {"about", "question", "answer", "what", "which", "explain", "select", "choose"}
+        return {
+            term
+            for term in re.findall(r"[A-Za-zА-Яа-я0-9]{4,}", text.lower())
+            if term not in stopwords
+        }
 
     def calculate_partial_credit(
         self,

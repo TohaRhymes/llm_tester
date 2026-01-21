@@ -55,11 +55,36 @@ class RAGRetriever:
         Returns:
             List of most relevant sections
         """
-        # Current simple implementation: random selection
         if len(document.sections) <= top_k:
             return document.sections
 
+        if query:
+            scored = [
+                (self._score_section(query, section), idx, section)
+                for idx, section in enumerate(document.sections)
+            ]
+            scored.sort(key=lambda item: (item[0], -item[1]), reverse=True)
+            return [section for _, _, section in scored[:top_k]]
+
+        # Fallback: random selection when no query provided
         return random.sample(document.sections, top_k)
+
+    def _score_section(self, query: str, section: ParsedSection) -> int:
+        """Score section relevance by term overlap."""
+        query_terms = self._extract_terms(query)
+        section_terms = self._extract_terms(section.content)
+        return len(query_terms & section_terms)
+
+    def _extract_terms(self, text: str) -> set[str]:
+        """Extract lowercase terms for overlap scoring."""
+        import re
+
+        stopwords = {"about", "question", "answer", "what", "which", "explain", "select", "choose"}
+        return {
+            term
+            for term in re.findall(r"[A-Za-zА-Яа-я0-9]{4,}", text.lower())
+            if term not in stopwords
+        }
 
     def compute_embeddings(self, texts: List[str]) -> List:
         """

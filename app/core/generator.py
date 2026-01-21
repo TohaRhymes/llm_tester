@@ -84,6 +84,20 @@ class QuestionGenerator:
         questions: List[Question] = []
         llm_client = self._get_llm_client(config)
 
+        use_rag = getattr(config, "rag_enabled", False)
+        sections_pool = None
+        if use_rag:
+            from app.core.retriever import RAGRetriever
+
+            retriever = RAGRetriever()
+            query = getattr(config, "rag_query", None) or document.title or ""
+            top_k = getattr(config, "rag_top_k", 3)
+            sections_pool = retriever.retrieve_relevant_sections(
+                document=document,
+                query=query,
+                top_k=top_k,
+            )
+
         for attempt in range(self.max_validation_attempts):
             questions = []
             question_counter = 0
@@ -96,7 +110,8 @@ class QuestionGenerator:
                     question_num=question_counter,
                     difficulty=config.difficulty,
                     config=config,
-                    llm_client=llm_client
+                    llm_client=llm_client,
+                    sections_pool=sections_pool
                 )
                 questions.append(question)
                 question_counter += 1
@@ -109,7 +124,8 @@ class QuestionGenerator:
                     question_num=question_counter,
                     difficulty=config.difficulty,
                     config=config,
-                    llm_client=llm_client
+                    llm_client=llm_client,
+                    sections_pool=sections_pool
                 )
                 questions.append(question)
                 question_counter += 1
@@ -122,7 +138,8 @@ class QuestionGenerator:
                     question_num=question_counter,
                     difficulty=config.difficulty,
                     config=config,
-                    llm_client=llm_client
+                    llm_client=llm_client,
+                    sections_pool=sections_pool
                 )
                 questions.append(question)
                 question_counter += 1
@@ -175,7 +192,8 @@ class QuestionGenerator:
         question_num: int,
         difficulty: str,
         config: ExamConfig,
-        llm_client: LLMProvider
+        llm_client: LLMProvider,
+        sections_pool: Optional[List[ParsedSection]] = None
     ) -> Question:
         """
         Generate a single question.
@@ -191,7 +209,8 @@ class QuestionGenerator:
             Generated Question
         """
         # Select a random section for this question
-        section = random.choice(document.sections)
+        candidate_sections = sections_pool or document.sections
+        section = random.choice(candidate_sections)
 
         # Determine difficulty
         if difficulty == "mixed":
@@ -204,11 +223,13 @@ class QuestionGenerator:
 
         # Generate question using configured LLM
         try:
+            prompt_variant = getattr(config, "prompt_variant", "default")
             result = llm_client.generate_question(
                 content=section.content,
                 question_type=question_type,
                 difficulty=actual_difficulty,
-                language=language
+                language=language,
+                prompt_variant=prompt_variant
             )
 
             # Create source reference
