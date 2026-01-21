@@ -36,6 +36,8 @@ ENV/
 # data
 examples/ai_data
 examples/med_data
+examples/raw/
+examples/used/
 
 # Testing
 .pytest_cache/

@@ -28,6 +28,10 @@ python-multipart==0.0.9
 # Rate limiting
 slowapi==0.1.9
 
+# Research evaluation
+ragas==0.1.21
+datasets==2.18.0
+
 # Future RAG dependencies (commented for now)
 # sentence-transformers==2.3.1
 # faiss-cpu==1.7.4

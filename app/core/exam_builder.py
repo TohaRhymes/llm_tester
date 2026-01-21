@@ -217,6 +217,7 @@ class QuestionFactory:
             provider: "openai" or "yandex"
             model_name: Optional model name override
             language: "en" or "ru"
+            prompt_variant: Prompt variant for generation
 
         Returns:
             Dictionary with question data
