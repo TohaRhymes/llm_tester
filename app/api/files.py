@@ -2,12 +2,14 @@
 File upload and management endpoints.
 """
 import os
+import subprocess
 from pathlib import Path
 from typing import List
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query
 from fastapi.responses import JSONResponse
 from app.config import settings
 from app.utils.path import safe_join
+from app.utils.pdf import convert_pdf_to_markdown
 
 router = APIRouter()
 
@@ -31,10 +33,12 @@ async def upload_file(file: UploadFile = File(...)):
         File information and path
     """
     # Validate file extension
-    if not file.filename.endswith('.md'):
+    is_markdown = file.filename.endswith('.md')
+    is_pdf = file.filename.endswith('.pdf')
+    if not (is_markdown or is_pdf):
         raise HTTPException(
             status_code=400,
-            detail="Only .md (Markdown) files are allowed"
+            detail="Only .md (Markdown) or .pdf files are allowed"
         )
 
     # Save file
@@ -55,6 +59,29 @@ async def upload_file(file: UploadFile = File(...)):
 
         with open(file_path, 'wb') as f:
             f.write(content)
+
+        if is_pdf:
+            try:
+                markdown_path = convert_pdf_to_markdown(file_path, UPLOAD_DIR)
+            except FileNotFoundError:
+                raise HTTPException(
+                    status_code=500,
+                    detail="pdftotext not available; install poppler-utils to enable PDF parsing"
+                )
+            except subprocess.CalledProcessError as exc:
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to parse PDF: {exc}"
+                )
+
+            return {
+                "filename": file.filename,
+                "path": str(file_path),
+                "size": len(content),
+                "markdown_filename": markdown_path.name,
+                "markdown_path": str(markdown_path),
+                "message": "PDF uploaded and converted successfully"
+            }
 
         return {
             "filename": file.filename,
@@ -105,6 +132,12 @@ async def get_file_content(filename: str):
         file_path = safe_join(UPLOAD_DIR, filename)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid filename")
+
+    if not filename.endswith(".md"):
+        raise HTTPException(
+            status_code=400,
+            detail="Only .md files can be read"
+        )
 
     if not file_path.exists():
         raise HTTPException(

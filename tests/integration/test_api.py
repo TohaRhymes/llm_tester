@@ -243,6 +243,37 @@ class TestFilesEndpoints:
         )
         assert response.status_code == 400
 
+    def test_upload_accepts_pdf_and_creates_markdown(self, tmp_path, monkeypatch):
+        """Accept PDF uploads and create a markdown conversion."""
+        monkeypatch.setattr(files_api, "UPLOAD_DIR", tmp_path)
+        tmp_path.mkdir(parents=True, exist_ok=True)
+
+        def fake_convert(pdf_path, output_dir):
+            markdown_path = output_dir / "example.md"
+            markdown_path.write_text("# example\n\nPDF extracted text\n", encoding="utf-8")
+            return markdown_path
+
+        monkeypatch.setattr(files_api, "convert_pdf_to_markdown", fake_convert)
+
+        response = client.post(
+            "/api/upload",
+            files={"file": ("example.pdf", b"%PDF-1.4 fake", "application/pdf")}
+        )
+        assert response.status_code == 200
+        payload = response.json()
+        assert payload["filename"] == "example.pdf"
+        assert payload["markdown_filename"].endswith(".md")
+
+        response = client.get("/api/files")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["count"] == 1
+        assert data["files"][0]["filename"].endswith(".md")
+
+        response = client.get(f"/api/files/{payload['markdown_filename']}")
+        assert response.status_code == 200
+        assert "PDF extracted text" in response.json()["content"]
+
 
 class TestExamsEndpoints:
     """Tests for exam listing endpoints."""
