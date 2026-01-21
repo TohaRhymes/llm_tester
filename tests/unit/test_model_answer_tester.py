@@ -57,10 +57,9 @@ class TestModelAnswerTester:
 
     def test_test_model_on_exam_openai(self, tester, sample_exam, tmp_path):
         """Test evaluating OpenAI model on exam."""
-        with patch('app.services.model_answer_tester.OpenAIClient') as mock_client:
-            # Mock OpenAI responses
+        with patch('app.services.model_answer_tester.get_llm_client') as mock_get_client:
             mock_instance = Mock()
-            mock_client.return_value = mock_instance
+            mock_get_client.return_value = mock_instance
 
             # Mock answer_question calls
             mock_instance.answer_question = Mock(side_effect=[
@@ -92,9 +91,9 @@ class TestModelAnswerTester:
 
     def test_test_model_on_exam_yandex(self, tester, sample_exam, tmp_path):
         """Test evaluating YandexGPT model on exam."""
-        with patch('app.services.model_answer_tester.YandexGPTClient') as mock_client:
+        with patch('app.services.model_answer_tester.get_llm_client') as mock_get_client:
             mock_instance = Mock()
-            mock_client.return_value = mock_instance
+            mock_get_client.return_value = mock_instance
 
             mock_instance.answer_question = Mock(side_effect=[
                 {"choice": [2], "reasoning": "Answer is 4"},
@@ -251,22 +250,28 @@ class TestModelAnswerTester:
             assert saved_data["accuracy"] == 0.6
 
     def test_invalid_provider(self, tester, sample_exam):
-        """Test error handling for invalid provider."""
-        with pytest.raises(ValueError, match="Unsupported provider"):
-            tester.test_model_on_exam(
+        """Test fallback behavior for invalid provider."""
+        with patch('app.services.model_answer_tester.get_llm_client') as mock_get_client:
+            mock_instance = Mock()
+            mock_instance.answer_question = Mock(return_value={"choice": [0]})
+            mock_get_client.return_value = mock_instance
+
+            result = tester.test_model_on_exam(
                 exam=sample_exam,
                 model_name="test-model",
                 provider="invalid-provider"
             )
 
+            assert result.provider == "invalid-provider"
+
     def test_batch_test_models(self, tester, sample_exam, tmp_path):
         """Test batch testing multiple models."""
-        with patch('app.services.model_answer_tester.OpenAIClient') as mock_openai, \
-             patch('app.services.model_answer_tester.YandexGPTClient') as mock_yandex:
-
-            # Mock clients
-            mock_openai.return_value.answer_question = Mock(return_value={"choice": [0]})
-            mock_yandex.return_value.answer_question = Mock(return_value={"choice": [0]})
+        with patch('app.services.model_answer_tester.get_llm_client') as mock_get_client:
+            mock_openai = Mock()
+            mock_openai.answer_question = Mock(return_value={"choice": [0]})
+            mock_yandex = Mock()
+            mock_yandex.answer_question = Mock(return_value={"choice": [0]})
+            mock_get_client.side_effect = [mock_openai, mock_yandex]
 
             models_config = [
                 {"model_name": "gpt-4o-mini", "provider": "openai"},

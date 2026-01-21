@@ -10,6 +10,11 @@ from app.core.parser import ParsedDocument, ParsedSection
 from app.models.schemas import ExamConfig, Question, Exam
 
 
+def make_config(**kwargs) -> ExamConfig:
+    """Create an ExamConfig that uses the local stub provider."""
+    return ExamConfig(provider="local", **kwargs)
+
+
 class TestQuestionGenerator:
     """Tests for question generation functionality."""
 
@@ -48,7 +53,7 @@ class TestQuestionGenerator:
 
     def test_generate_returns_exam(self, generator, sample_document):
         """Test that generate returns an Exam object."""
-        config = ExamConfig(total_questions=5)
+        config = make_config(total_questions=5)
         result = generator.generate(
             document=sample_document,
             config=config,
@@ -59,13 +64,13 @@ class TestQuestionGenerator:
 
     def test_generate_correct_number_of_questions(self, generator, sample_document):
         """Test that generator creates correct number of questions."""
-        config = ExamConfig(total_questions=10)
+        config = make_config(total_questions=10)
         result = generator.generate(sample_document, config, "test")
         assert len(result.questions) == 10
 
     def test_generate_respects_question_type_ratios(self, generator, sample_document):
         """Test that generator respects single/multiple choice ratios."""
-        config = ExamConfig(
+        config = make_config(
             total_questions=10,
             single_choice_ratio=0.7,
             multiple_choice_ratio=0.3,
@@ -81,7 +86,7 @@ class TestQuestionGenerator:
 
     def test_generated_questions_have_unique_ids(self, generator, sample_document):
         """Test that all generated questions have unique IDs."""
-        config = ExamConfig(total_questions=5)
+        config = make_config(total_questions=5)
         result = generator.generate(sample_document, config, "test")
 
         ids = [q.id for q in result.questions]
@@ -89,7 +94,7 @@ class TestQuestionGenerator:
 
     def test_generated_questions_have_source_refs(self, generator, sample_document):
         """Test that questions include source references."""
-        config = ExamConfig(total_questions=3)
+        config = make_config(total_questions=3)
         result = generator.generate(sample_document, config, "test")
 
         for question in result.questions:
@@ -97,7 +102,7 @@ class TestQuestionGenerator:
 
     def test_single_choice_has_one_correct_answer(self, generator, sample_document):
         """Test that single choice questions have exactly one correct answer."""
-        config = ExamConfig(
+        config = make_config(
             total_questions=5,
             single_choice_ratio=1.0,
             multiple_choice_ratio=0.0,
@@ -111,7 +116,7 @@ class TestQuestionGenerator:
 
     def test_multiple_choice_has_multiple_correct(self, generator, sample_document):
         """Test that multiple choice questions have 2+ correct answers."""
-        config = ExamConfig(
+        config = make_config(
             total_questions=5,
             single_choice_ratio=0.0,
             multiple_choice_ratio=1.0,
@@ -125,7 +130,12 @@ class TestQuestionGenerator:
 
     def test_questions_have_valid_options_count(self, generator, sample_document):
         """Test that questions have 3-5 options."""
-        config = ExamConfig(total_questions=5)
+        config = make_config(
+            total_questions=5,
+            single_choice_ratio=0.6,
+            multiple_choice_ratio=0.4,
+            open_ended_ratio=0.0
+        )
         result = generator.generate(sample_document, config, "test")
 
         for question in result.questions:
@@ -133,7 +143,7 @@ class TestQuestionGenerator:
 
     def test_generate_with_seed_is_deterministic(self, generator, sample_document):
         """Test that using same seed produces same results."""
-        config = ExamConfig(total_questions=5, seed=42)
+        config = make_config(total_questions=5, seed=42)
 
         result1 = generator.generate(sample_document, config, "test1")
         result2 = generator.generate(sample_document, config, "test2")
@@ -146,14 +156,14 @@ class TestQuestionGenerator:
     def test_generate_handles_empty_document(self, generator):
         """Test that generator handles document with no content."""
         empty_doc = ParsedDocument(title=None, sections=[], source_text="")
-        config = ExamConfig(total_questions=5)
+        config = make_config(total_questions=5)
 
         with pytest.raises(ValueError):
             generator.generate(empty_doc, config, "test")
 
     def test_exam_includes_config_used(self, generator, sample_document):
         """Test that generated exam includes the config used."""
-        config = ExamConfig(total_questions=5)
+        config = make_config(total_questions=5)
         result = generator.generate(sample_document, config, "test")
 
         assert result.config_used == config
@@ -256,7 +266,7 @@ class TestOpenEndedQuestionGeneration:
 
     def test_generate_open_ended_questions(self, generator, sample_document):
         """Test generation of open-ended questions."""
-        config = ExamConfig(
+        config = make_config(
             total_questions=5,
             single_choice_ratio=0.0,
             multiple_choice_ratio=0.0,
@@ -275,7 +285,7 @@ class TestOpenEndedQuestionGeneration:
 
     def test_generate_mixed_with_open_ended(self, generator, sample_document):
         """Test generation with mixed question types including open-ended."""
-        config = ExamConfig(
+        config = make_config(
             total_questions=10,
             single_choice_ratio=0.5,
             multiple_choice_ratio=0.3,
@@ -293,7 +303,7 @@ class TestOpenEndedQuestionGeneration:
 
     def test_open_ended_has_valid_reference_answer(self, generator, sample_document):
         """Test that open-ended questions have non-empty reference answers."""
-        config = ExamConfig(
+        config = make_config(
             total_questions=3,
             single_choice_ratio=0.0,
             multiple_choice_ratio=0.0,
@@ -307,7 +317,7 @@ class TestOpenEndedQuestionGeneration:
 
     def test_open_ended_has_valid_rubric(self, generator, sample_document):
         """Test that open-ended questions have valid rubric."""
-        config = ExamConfig(
+        config = make_config(
             total_questions=2,
             single_choice_ratio=0.0,
             multiple_choice_ratio=0.0,

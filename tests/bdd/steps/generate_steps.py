@@ -4,13 +4,10 @@ BDD step definitions for question generation.
 import json
 from pathlib import Path
 from behave import given, when, then
-from fastapi.testclient import TestClient
-from app.main import app
 from app.config import settings
+from tests.utils import SyncASGIClient
 
-
-client = TestClient(app)
-
+client = SyncASGIClient()
 
 @given('I have medical educational content in Markdown format')
 def step_have_medical_content(context):
@@ -48,7 +45,10 @@ def step_have_empty_content(context):
 def step_request_generation_default(context):
     """Request generation with defaults."""
     request_data = {
-        "markdown_content": context.markdown_content
+        "markdown_content": context.markdown_content,
+        "config": {
+            "provider": "local"
+        }
     }
     context.response = client.post("/api/generate", json=request_data)
 
@@ -59,7 +59,8 @@ def step_request_generation_count(context, count):
     request_data = {
         "markdown_content": context.markdown_content,
         "config": {
-            "total_questions": count
+            "total_questions": count,
+            "provider": "local"
         }
     }
     context.response = client.post("/api/generate", json=request_data)
@@ -73,7 +74,8 @@ def step_request_generation_ratios(context, single, multiple):
         "config": {
             "total_questions": 10,
             "single_choice_ratio": single / 100.0,
-            "multiple_choice_ratio": multiple / 100.0
+            "multiple_choice_ratio": multiple / 100.0,
+            "provider": "local"
         }
     }
     context.response = client.post("/api/generate", json=request_data)
@@ -193,6 +195,8 @@ def step_check_stems(context):
 def step_check_options_range(context, min_opt, max_opt):
     """Verify options count range."""
     for question in context.exam["questions"]:
+        if question["options"] is None:
+            continue
         options_count = len(question["options"])
         assert min_opt <= options_count <= max_opt, \
             f"Question has {options_count} options, expected {min_opt}-{max_opt}"
@@ -202,6 +206,8 @@ def step_check_options_range(context, min_opt, max_opt):
 def step_check_correct_indices(context):
     """Verify correct answers exist."""
     for question in context.exam["questions"]:
+        if question["type"] == "open_ended":
+            continue
         assert "correct" in question
         assert len(question["correct"]) > 0
 

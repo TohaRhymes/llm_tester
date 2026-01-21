@@ -136,7 +136,7 @@ class TestExamConfig:
         assert config.total_questions == 20
         assert config.single_choice_ratio == 0.5
         assert config.multiple_choice_ratio == 0.3
-        assert config.open_ended_ratio == 0.2
+        assert config.open_ended_ratio == pytest.approx(0.2)
 
 
 class TestExam:

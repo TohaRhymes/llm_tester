@@ -2,14 +2,14 @@
 BDD step definitions for API health check.
 """
 from behave import when, then
-from fastapi.testclient import TestClient
-from app.main import app
+from tests.utils import SyncASGIClient
+
+client = SyncASGIClient()
 
 
 @when('I request the health endpoint')
 def step_request_health(context):
     """Request the health endpoint."""
-    client = TestClient(app)
     context.response = client.get("/health")
 
 
