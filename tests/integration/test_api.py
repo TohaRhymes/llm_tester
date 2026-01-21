@@ -267,12 +267,31 @@ class TestFilesEndpoints:
         response = client.get("/api/files")
         assert response.status_code == 200
         data = response.json()
-        assert data["count"] == 1
-        assert data["files"][0]["filename"].endswith(".md")
+        assert data["count"] == 2
+        filenames = [item["filename"] for item in data["files"]]
+        assert filenames == sorted(filenames, key=str.lower)
+        assert "example.pdf" in filenames
+        assert "example.md" in filenames
 
         response = client.get(f"/api/files/{payload['markdown_filename']}")
         assert response.status_code == 200
         assert "PDF extracted text" in response.json()["content"]
+
+        response = client.get("/api/files/example.pdf")
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "application/pdf"
+
+    def test_upload_with_custom_name(self, tmp_path, monkeypatch):
+        """Store uploaded file using a custom name."""
+        monkeypatch.setattr(files_api, "UPLOAD_DIR", tmp_path)
+        tmp_path.mkdir(parents=True, exist_ok=True)
+
+        response = client.post(
+            "/api/upload?name=custom-doc",
+            files={"file": ("example.md", b"# Title", "text/markdown")}
+        )
+        assert response.status_code == 200
+        assert response.json()["filename"] == "custom-doc.md"
 
 
 class TestExamsEndpoints:

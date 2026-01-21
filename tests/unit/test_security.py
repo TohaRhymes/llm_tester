@@ -152,6 +152,7 @@ class TestFileUploadValidation:
 
         source = inspect.getsource(upload_file)
         assert ".md" in source, "Should check for .md extension"
+        assert ".pdf" in source, "Should check for .pdf extension"
         assert "endswith" in source or "suffix" in source, "Should validate file extension"
 
 

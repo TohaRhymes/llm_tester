@@ -22,12 +22,17 @@
 
         <!-- Upload Tab -->
         <div id="upload-tab" class="tab-content active">
-            <h2>Upload Markdown Files</h2>
+            <h2>Upload Markdown or PDF Files</h2>
             <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
-                <input type="file" id="fileInput" accept=".md" onchange="uploadFile(event)">
+                <input type="file" id="fileInput" accept=".md,.pdf" onchange="window.FileManager.handleFileUpload(event)">
                 <p style="font-size: 3em;">📄</p>
                 <p style="font-size: 18px; margin: 10px 0;">Click to upload or drag & drop</p>
-                <p style="color: #666;">Only .md (Markdown) files accepted</p>
+                <p style="color: #666;">.md or .pdf accepted</p>
+            </div>
+            <div style="margin-top: 10px;">
+                <label><strong>Save as (optional):</strong></label>
+                <input id="uploadName" type="text" placeholder="custom-file-name"
+                       style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #ddd;">
             </div>
             <div id="uploadResult"></div>
             <h3 style="margin-top: 30px;">Uploaded Files</h3>

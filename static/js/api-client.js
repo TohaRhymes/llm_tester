@@ -66,15 +66,17 @@ async function apiRequest(endpoint, options = {}) {
  */
 const API = {
     /**
-     * Upload a markdown file
+     * Upload a markdown or PDF file
      * @param {File} file - File to upload
+     * @param {string} name - Optional custom filename (without extension)
      * @returns {Promise<Object>} Upload result
      */
-    async uploadFile(file) {
+    async uploadFile(file, name = '') {
         const formData = new FormData();
         formData.append('file', file);
+        const query = name ? `?name=${encodeURIComponent(name)}` : '';
 
-        const response = await fetch(`${API_BASE}/api/upload`, {
+        const response = await fetch(`${API_BASE}/api/upload${query}`, {
             method: 'POST',
             body: formData  // Don't set Content-Type for FormData
         });
@@ -103,6 +105,20 @@ const API = {
      */
     async getFileContent(filename) {
         return apiRequest(`/api/files/${encodeURIComponent(filename)}`);
+    },
+
+    /**
+     * Download file by filename
+     * @param {string} filename - File name
+     * @returns {Promise<Blob>} File blob
+     */
+    async downloadFile(filename) {
+        const response = await fetch(`${API_BASE}/api/files/${encodeURIComponent(filename)}`);
+        if (!response.ok) {
+            const data = await response.json();
+            throw new APIError(data.detail || 'Download failed', response.status, data);
+        }
+        return response.blob();
     },
 
     /**

@@ -101,8 +101,9 @@ function validateFile(file) {
         return { valid: false, error: 'No file selected' };
     }
 
-    if (!file.name.endsWith('.md')) {
-        return { valid: false, error: 'Only .md (Markdown) files are allowed' };
+    const lower = file.name.toLowerCase();
+    if (!(lower.endsWith('.md') || lower.endsWith('.pdf'))) {
+        return { valid: false, error: 'Only .md (Markdown) or .pdf files are allowed' };
     }
 
     // 10MB limit (matches backend)

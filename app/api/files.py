@@ -6,10 +6,11 @@ import subprocess
 from pathlib import Path
 from typing import List
 from fastapi import APIRouter, UploadFile, File, HTTPException, Query
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from app.config import settings
 from app.utils.path import safe_join
 from app.utils.pdf import convert_pdf_to_markdown
+from app.utils.preprocess import sanitize_filename
 
 router = APIRouter()
 
@@ -22,7 +23,10 @@ MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB in bytes
 
 
 @router.post("/api/upload", tags=["files"])
-async def upload_file(file: UploadFile = File(...)):
+async def upload_file(
+    file: UploadFile = File(...),
+    name: str | None = Query(None),
+):
     """
     Upload a Markdown file for exam generation.
 
@@ -41,9 +45,18 @@ async def upload_file(file: UploadFile = File(...)):
             detail="Only .md (Markdown) or .pdf files are allowed"
         )
 
+    custom_name = sanitize_filename(name or "")
+    if custom_name:
+        if is_markdown:
+            filename = f"{custom_name}.md"
+        else:
+            filename = f"{custom_name}.pdf"
+    else:
+        filename = file.filename
+
     # Save file
     try:
-        file_path = safe_join(UPLOAD_DIR, file.filename)
+        file_path = safe_join(UPLOAD_DIR, filename)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid filename")
 
@@ -75,7 +88,7 @@ async def upload_file(file: UploadFile = File(...)):
                 )
 
             return {
-                "filename": file.filename,
+                "filename": filename,
                 "path": str(file_path),
                 "size": len(content),
                 "markdown_filename": markdown_path.name,
@@ -84,7 +97,7 @@ async def upload_file(file: UploadFile = File(...)):
             }
 
         return {
-            "filename": file.filename,
+            "filename": filename,
             "path": str(file_path),
             "size": len(content),
             "message": "File uploaded successfully"
@@ -99,21 +112,27 @@ async def upload_file(file: UploadFile = File(...)):
 @router.get("/api/files", tags=["files"])
 async def list_files():
     """
-    List all uploaded Markdown files.
+    List all uploaded Markdown and PDF files.
 
     Returns:
         List of uploaded files with metadata
     """
     files = []
-    for file_path in UPLOAD_DIR.glob("*.md"):
+    for file_path in UPLOAD_DIR.iterdir():
+        if not file_path.is_file():
+            continue
+        if file_path.suffix not in {".md", ".pdf"}:
+            continue
         stat = file_path.stat()
         files.append({
             "filename": file_path.name,
             "path": str(file_path),
             "size": stat.st_size,
-            "modified": stat.st_mtime
+            "modified": stat.st_mtime,
+            "file_type": "markdown" if file_path.suffix == ".md" else "pdf",
         })
 
+    files = sorted(files, key=lambda item: item["filename"].lower())
     return {"files": files, "count": len(files)}
 
 
@@ -133,16 +152,31 @@ async def get_file_content(filename: str):
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid filename")
 
-    if not filename.endswith(".md"):
+    if not (filename.endswith(".md") or filename.endswith(".pdf")):
         raise HTTPException(
             status_code=400,
-            detail="Only .md files can be read"
+            detail="Only .md or .pdf files can be read"
         )
 
     if not file_path.exists():
         raise HTTPException(
             status_code=404,
             detail=f"File '{filename}' not found"
+        )
+
+    if file_path.suffix == ".pdf":
+        try:
+            content = file_path.read_bytes()
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to read file: {str(e)}"
+            )
+
+        return Response(
+            content=content,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename=\"{file_path.name}\""},
         )
 
     try:

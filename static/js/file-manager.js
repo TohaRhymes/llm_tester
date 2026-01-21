@@ -21,8 +21,11 @@ async function handleFileUpload(event) {
     const resultDiv = 'uploadResult';
     window.UIUtils.showLoading(resultDiv, 'Uploading...');
 
+    const nameInput = document.getElementById('uploadName');
+    const desiredName = nameInput ? nameInput.value.trim() : '';
+
     try {
-        const result = await window.API.uploadFile(file);
+        const result = await window.API.uploadFile(file, desiredName);
         window.UIUtils.showSuccess(
             resultDiv,
             `${result.message}: ${result.filename} (${window.UIUtils.formatFileSize(result.size)})`
@@ -33,6 +36,9 @@ async function handleFileUpload(event) {
 
         // Clear file input
         event.target.value = '';
+        if (nameInput) {
+            nameInput.value = '';
+        }
     } catch (error) {
         window.UIUtils.showAPIError(resultDiv, error);
     }
@@ -51,13 +57,23 @@ async function loadFileList() {
             return;
         }
 
-        fileList.innerHTML = data.files.map(file => `
-            <div class="card">
-                <h3>📄 ${file.filename}</h3>
-                <p>Size: ${window.UIUtils.formatFileSize(file.size)}</p>
-                <p>Modified: ${window.UIUtils.formatDate(file.modified)}</p>
-            </div>
-        `).join('');
+        fileList.innerHTML = data.files.map(file => {
+            const isPdf = file.file_type === 'pdf';
+            const icon = isPdf ? '📕' : '📄';
+            const action = isPdf
+                ? `<a class="btn secondary" href="/api/files/${encodeURIComponent(file.filename)}" target="_blank" rel="noopener">Download</a>`
+                : `<a class="btn secondary" href="/api/files/${encodeURIComponent(file.filename)}" target="_blank" rel="noopener">View</a>`;
+
+            return `
+                <div class="card">
+                    <h3>${icon} ${file.filename}</h3>
+                    <p>Type: ${file.file_type}</p>
+                    <p>Size: ${window.UIUtils.formatFileSize(file.size)}</p>
+                    <p>Modified: ${window.UIUtils.formatDate(file.modified)}</p>
+                    ${action}
+                </div>
+            `;
+        }).join('');
     } catch (error) {
         console.error('Error loading files:', error);
         // Don't show error to user - silent failure for background refresh
@@ -72,8 +88,9 @@ async function populateFileSelect() {
         const data = await window.API.getFiles();
         const select = document.getElementById('fileSelect');
 
+        const markdownFiles = data.files.filter(file => file.file_type === 'markdown');
         select.innerHTML = '<option value="">Choose a file...</option>' +
-            data.files.map(file =>
+            markdownFiles.map(file =>
                 `<option value="${file.filename}">${file.filename}</option>`
             ).join('');
     } catch (error) {
