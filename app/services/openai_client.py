@@ -27,7 +27,8 @@ class OpenAIClient:
         content: str,
         question_type: str,
         difficulty: str = "medium",
-        language: str = "en"
+        language: str = "en",
+        prompt_variant: str = "default"
     ) -> Dict[str, Any]:
         """
         Generate a single question from content.
@@ -41,7 +42,7 @@ class OpenAIClient:
         Returns:
             Dict with question data (stem, options, correct, rubric) for all types
         """
-        prompt = self._build_prompt(content, question_type, difficulty, language)
+        prompt = self._build_prompt(content, question_type, difficulty, language, prompt_variant)
 
         # Get language-specific system message
         prompts_module = prompts_ru if language == "ru" else prompts_en
@@ -83,7 +84,14 @@ class OpenAIClient:
         except Exception as e:
             raise RuntimeError(f"Failed to generate question: {str(e)}")
 
-    def _build_prompt(self, content: str, question_type: str, difficulty: str, language: str) -> str:
+    def _build_prompt(
+        self,
+        content: str,
+        question_type: str,
+        difficulty: str,
+        language: str,
+        prompt_variant: str
+    ) -> str:
         """
         Build prompt for question generation.
 
@@ -96,11 +104,9 @@ class OpenAIClient:
         Returns:
             Formatted prompt string
         """
-        # Select correct prompt module based on language
-        prompts_module = prompts_ru if language == "ru" else prompts_en
-
         if question_type == "open_ended":
-            template = prompts_module.OPEN_ENDED_PROMPT_RU if language == "ru" else prompts_module.OPEN_ENDED_PROMPT_EN
+            from app.prompts.registry import get_prompt_template
+            template = get_prompt_template(language, question_type, prompt_variant)
             return template.format(content=content, difficulty=difficulty)
 
         # Choice questions (single or multiple)
@@ -119,7 +125,8 @@ class OpenAIClient:
                 type_instruction = "Create a multiple-choice question with 2-3 correct answers."
                 correct_format = "The 'correct' field must be a list with 2-3 indices (e.g., [1, 3])."
 
-        template = prompts_module.CHOICE_QUESTION_PROMPT_RU if language == "ru" else prompts_module.CHOICE_QUESTION_PROMPT_EN
+        from app.prompts.registry import get_prompt_template
+        template = get_prompt_template(language, question_type, prompt_variant)
         return template.format(
             content=content,
             difficulty=difficulty,

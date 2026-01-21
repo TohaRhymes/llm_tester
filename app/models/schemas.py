@@ -120,6 +120,10 @@ class ExamConfig(BaseModel):
     seed: Optional[int] = Field(None, description="Random seed for reproducibility")
     provider: Literal["openai", "yandex", "local"] = Field("openai", description="LLM provider for generation/grading")
     model_name: Optional[str] = Field(None, description="Specific model to use for the provider")
+    prompt_variant: str = Field("default", description="Prompt template variant for generation")
+    rag_enabled: bool = Field(False, description="Enable retrieval-augmented generation")
+    rag_top_k: int = Field(3, ge=1, le=10, description="Top-k sections to retrieve when RAG is enabled")
+    rag_query: Optional[str] = Field(None, description="Optional query for RAG retrieval")
     model_config = ConfigDict(protected_namespaces=())
 
     @model_validator(mode='after')
@@ -234,6 +238,8 @@ class QuestionResult(BaseModel):
     given_text: Optional[str] = Field(None, description="Student's text answer (for open_ended)")
     partial_credit: float = Field(0.0, ge=0.0, le=1.0, description="Partial credit (0.0-1.0)")
     feedback: Optional[str] = Field(None, description="Detailed feedback (for open_ended)")
+    rubric_scores: Optional[List[int]] = Field(None, description="Rubric scores (for open_ended)")
+    metrics: Optional[Dict[str, float]] = Field(None, description="Open-ended grading metrics")
 
 
 class GradeSummary(BaseModel):

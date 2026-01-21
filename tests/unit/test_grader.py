@@ -331,6 +331,9 @@ class TestOpenEndedGrading:
         assert result.given_text is not None
         assert result.feedback is not None
         assert 0.0 <= result.partial_credit <= 1.0
+        assert result.rubric_scores is not None
+        assert result.metrics is not None
+        assert 0.0 <= result.metrics.get("rubric_coverage", 0.0) <= 1.0
 
     def test_grade_open_ended_uses_ai_scoring(self, grader, open_ended_exam):
         """Test that open-ended grading uses AI for scoring."""
