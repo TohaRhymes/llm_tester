@@ -29,6 +29,10 @@ dev = [
     "httpx>=0.26.0,<0.28",
     "behave>=1.2.6",
 ]
+research = [
+    "ragas>=0.1.21",
+    "datasets>=2.18.0",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
