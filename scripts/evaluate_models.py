@@ -12,6 +12,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 
+from scripts._utils import ensure_repo_root_on_path
+
+ensure_repo_root_on_path(__file__)
+
 from app.core.parser import MarkdownParser
 from app.core.generator import QuestionGenerator
 from app.core.grader import Grader
@@ -22,7 +26,6 @@ from app.core.evaluator import (
     EvaluationReport
 )
 from app.models.schemas import ExamConfig, GradeRequest, StudentAnswer
-from app.services.openai_client import OpenAIClient
 from app.config import settings
 
 
