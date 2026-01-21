@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Comprehensive frontend architecture documentation (docs/ARCHITECTURE.md)
+- Comprehensive frontend architecture documentation (ARCHITECTURE.md)
 - Project audit report (AUDIT_REPORT.md)
 - Security policy documentation (SECURITY.md)
 
@@ -137,8 +137,8 @@ CORS_ORIGINS=https://yourdomain.com,https://app.yourdomain.com
 
 ## Links
 
-- [Frontend Architecture](docs/ARCHITECTURE.md)
+- [Frontend Architecture](ARCHITECTURE.md)
 - [Security Policy](SECURITY.md)
 - [Project Audit](AUDIT_REPORT.md)
-- [Development Guidelines](CLAUDE.md)
+- [Development Guidelines](../CLAUDE.md)
 - [GitHub Repository](https://github.com/TohaRhymes/llm_tester)

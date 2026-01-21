@@ -462,8 +462,8 @@ static/
 ## 🔗 Related Documents
 
 - [SECURITY.md](./SECURITY.md) - Security policy and audit results
-- [CLAUDE.md](./CLAUDE.md) - Development guidelines
-- [README.md](./README.md) - Project overview
+- [CLAUDE.md](../CLAUDE.md) - Development guidelines
+- [README.md](../README.md) - Project overview
 - [Issue #9](https://github.com/TohaRhymes/llm_tester/issues/9) - Frontend improvements
 - [Issue #10](https://github.com/TohaRhymes/llm_tester/issues/10) - Security audit (CLOSED)
 
