@@ -91,6 +91,7 @@ class YandexGPTClient:
             question_type: "single_choice", "multiple_choice", or "open_ended"
             difficulty: "easy", "medium", or "hard"
             language: "en" for English or "ru" for Russian
+            prompt_variant: Prompt variant name for research comparisons
 
         Returns:
             Dict with question data (stem, options, correct, rubric) for all types
@@ -147,6 +148,7 @@ class YandexGPTClient:
         """
         if question_type == "open_ended":
             from app.prompts.registry import get_prompt_template
+
             template = get_prompt_template(language, question_type, prompt_variant)
             return template.format(content=content, difficulty=difficulty)
 

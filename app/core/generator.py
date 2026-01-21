@@ -11,6 +11,7 @@ from app.models.schemas import (
 )
 from app.services.llm_provider import get_llm_client, LLMProvider, ProviderName
 from app.core.validator import QuestionValidator
+from app.core.retriever import create_rag_retriever
 
 
 logger = logging.getLogger(__name__)
@@ -69,7 +70,7 @@ class QuestionGenerator:
         num_open_ended = config.open_ended_count or 0
 
         logger.info(
-            "Generating exam %s with provider=%s model=%s counts(single=%s,multi=%s,open=%s) language=%s difficulty=%s",
+            "Generating exam %s with provider=%s model=%s counts(single=%s,multi=%s,open=%s) language=%s difficulty=%s prompt_variant=%s rag_enabled=%s rag_top_k=%s",
             exam_id,
             getattr(config, "provider", self.provider_name),
             getattr(config, "model_name", self.model_name),
@@ -78,6 +79,9 @@ class QuestionGenerator:
             num_open_ended,
             getattr(config, "language", "en"),
             getattr(config, "difficulty", "mixed"),
+            getattr(config, "prompt_variant", "default"),
+            getattr(config, "rag_enabled", False),
+            getattr(config, "rag_top_k", 3),
         )
 
         validation = None
@@ -87,9 +91,7 @@ class QuestionGenerator:
         use_rag = getattr(config, "rag_enabled", False)
         sections_pool = None
         if use_rag:
-            from app.core.retriever import RAGRetriever
-
-            retriever = RAGRetriever()
+            retriever = create_rag_retriever()
             query = getattr(config, "rag_query", None) or document.title or ""
             top_k = getattr(config, "rag_top_k", 3)
             sections_pool = retriever.retrieve_relevant_sections(
@@ -223,13 +225,12 @@ class QuestionGenerator:
 
         # Generate question using configured LLM
         try:
-            prompt_variant = getattr(config, "prompt_variant", "default")
             result = llm_client.generate_question(
                 content=section.content,
                 question_type=question_type,
                 difficulty=actual_difficulty,
                 language=language,
-                prompt_variant=prompt_variant
+                prompt_variant=getattr(config, "prompt_variant", "default")
             )
 
             # Create source reference
