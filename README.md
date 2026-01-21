@@ -64,7 +64,7 @@ FastAPI service that generates educational exams from Markdown content and evalu
     -d '{"exam_id":"ex-xxxxxx","answers":[{"question_id":"q-001","choice":[1]}]}'
   ```
 - Use the UI: browse to `/` and follow upload → generate → take exam → grade.
-- Postman: import `LLM_Test_Generator.postman_collection.json` for a ready-made request set.
+- Postman: import `docs/api/LLM_Test_Generator.postman_collection.json` for a ready-made request set.
 
 ## Project Structure
 ```
