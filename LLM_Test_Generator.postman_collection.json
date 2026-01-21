@@ -83,7 +83,7 @@
             {
               "key": "file",
               "type": "file",
-              "src": "examples/sample_medical.md"
+              "src": "docs/examples/sample_data/sample_medical.md"
             }
           ]
         },

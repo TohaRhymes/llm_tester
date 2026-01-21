@@ -3,7 +3,7 @@
 Script to evaluate and compare different LLM models for question generation and grading.
 
 Usage:
-    python scripts/evaluate_models.py --models gpt-4o-mini,gpt-4o --content examples/medical_content.md
+    python scripts/evaluate_models.py --models gpt-4o-mini,gpt-4o --content docs/examples/sample_data/sample_medical.md
 """
 import argparse
 import json
@@ -232,7 +232,7 @@ def main():
     parser.add_argument(
         "--content",
         type=str,
-        default="examples/medical_content.md",
+        default="docs/examples/sample_data/sample_medical.md",
         help="Path to markdown content file"
     )
     parser.add_argument(

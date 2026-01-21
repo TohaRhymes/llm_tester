@@ -90,9 +90,12 @@ examples/notebooks/        # Jupyter-friendly examples
 tests/              # unit/integration/BDD suites
 docs/
   QUICK_START.md         # 5-minute getting started guide
-  SCRIPTS_GUIDE.md       # Detailed guide to all scripts and tools
-  EVALUATION.md          # Complete evaluation workflows
-  SOLUTION_OVERVIEW.md   # Architecture and API reference
+  ARCHITECTURE.md        # System architecture, API reference, frontend design
+  PLAN.md                # Development roadmap
+  CONTRIBUTING.md        # TDD/BDD workflow and guidelines
+  SECURITY.md            # Security policy
+  CHANGELOG.md           # Version history and migration guides
+  AUDIT_REPORT.md        # Project audit report
 ```
 
 ## Testing and Evaluation
@@ -110,7 +113,7 @@ Benchmark different LLMs for question generation:
 ```bash
 python scripts/evaluate_models.py \
   --models gpt-4o-mini,gpt-4o \
-  --content examples/medical_content.md \
+  --content docs/examples/sample_data/sample_medical.md \
   --num-questions 10
 ```
 
@@ -173,25 +176,21 @@ The web UI has been completely refactored into a clean, modular architecture:
 - Smart error message mapping (HTTP codes → user-friendly text)
 - Modular, maintainable, testable code
 
-See [docs/FRONTEND.md](docs/FRONTEND.md) for complete architecture documentation.
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for complete architecture documentation.
 
 ## 📚 Documentation
 
 **Getting Started**:
 - [Quick Start Guide](docs/QUICK_START.md) - 5-minute setup
-- [Scripts Guide](docs/SCRIPTS_GUIDE.md) - Detailed guide to all tools
-- [Evaluation Guide](docs/EVALUATION.md) - Complete evaluation workflows
 
 **Architecture & Development**:
 - [Architecture](docs/ARCHITECTURE.md) - System architecture and design
-- [Solution Overview](docs/SOLUTION.md) - API reference and flows
 - [Implementation Plan](docs/PLAN.md) - Development roadmap
-- [Frontend Architecture](docs/FRONTEND.md) - Modular UI design
 
 **Contributing & Security**:
-- [Contributing Guide](CONTRIBUTING.md) - TDD/BDD workflow and guidelines
-- [Security Policy](SECURITY.md) - Security measures and vulnerability reporting
-- [Changelog](CHANGELOG.md) - Version history and migration guides
+- [Contributing Guide](docs/CONTRIBUTING.md) - TDD/BDD workflow and guidelines
+- [Security Policy](docs/SECURITY.md) - Security measures and vulnerability reporting
+- [Changelog](docs/CHANGELOG.md) - Version history and migration guides
 
 ## Notes
 - OpenAI or Yandex API key required depending on provider choice

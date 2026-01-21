@@ -269,7 +269,7 @@ Fixes #21"
 # Documentation
 git commit -m "docs: update README with new frontend architecture
 
-Added frontend architecture section linking to docs/FRONTEND.md.
+Added frontend architecture section linking to docs/ARCHITECTURE.md.
 Updated installation instructions."
 
 # Security
@@ -431,7 +431,7 @@ See [SECURITY.md](SECURITY.md) for more details.
 
 - **README.md**: Project overview and quick start
 - **CLAUDE.md**: Development guidelines
-- **docs/FRONTEND.md**: Frontend architecture
+- **docs/ARCHITECTURE.md**: System architecture, API reference, frontend design
 - **docs/ARCHITECTURE.md**: System architecture
 - **SECURITY.md**: Security policy
 - **CHANGELOG.md**: Version history
