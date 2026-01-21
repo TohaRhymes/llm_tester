@@ -1,7 +1,9 @@
-# Project Audit Report
+# Project Audit Report (Archived)
 **Date**: 2026-01-13
 **Project**: LLM Test Generator
 **Auditor**: Claude Code + Security Team
+
+This report is archived and kept for historical context. Current status and roadmap live in `docs/PROJECT_STATUS.md`.
 
 ## Executive Summary
 
