@@ -390,7 +390,7 @@ def main():
     print("  - Review generated exams in data/out/")
     print("  - Check evaluation results in data/results/")
     print("  - Try examples in Jupyter: %run examples/complete_workflow.py")
-    print("  - Read docs/QUICK_START.md for more examples")
+    print("  - Read README.md for more examples")
 
 
 if __name__ == "__main__":

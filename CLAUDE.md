@@ -111,7 +111,6 @@ pytest --cov=app --cov-report=html tests/
 /docs                     # Documentation
   ARCHITECTURE.md        # System architecture, API reference, frontend design
   PLAN.md                # Development roadmap
-  QUICK_START.md         # 5-minute setup guide
   CONTRIBUTING.md        # Contribution guidelines
   SECURITY.md            # Security policy
   CHANGELOG.md           # Version history

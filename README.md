@@ -89,7 +89,6 @@ examples/notebooks/        # Jupyter-friendly examples
   02_model_evaluation.py     # Test models on exams
 tests/              # unit/integration/BDD suites
 docs/
-  QUICK_START.md         # 5-minute getting started guide
   ARCHITECTURE.md        # System architecture, API reference, frontend design
   PLAN.md                # Development roadmap
   CONTRIBUTING.md        # TDD/BDD workflow and guidelines
@@ -155,6 +154,87 @@ comparison = compare_models(
 )
 ```
 
+## Python API Examples
+
+### Generate a Single Question
+```python
+from app.core.exam_builder import generate_question
+
+snippet = """
+Гестационная гипертензия — это артериальное давление ≥140/90 мм рт. ст.,
+впервые выявленное после 20-й недели беременности.
+"""
+
+question = generate_question(
+    content=snippet,
+    question_type="single_choice",
+    difficulty="medium",
+    provider="openai",
+    language="ru"
+)
+
+print(question["stem"])
+print(question["options"])
+print(question["correct"])
+```
+
+### Generate an Exam from Text
+```python
+from app.core.exam_builder import generate_exam_from_text
+
+content = """
+# Topic
+## Section
+Text here...
+"""
+
+exam = generate_exam_from_text(
+    markdown_content=content,
+    total_questions=10,
+    single_choice_ratio=0.6,
+    multiple_choice_ratio=0.4,
+    language="ru"
+)
+```
+
+### Generate from File
+```python
+from app.core.exam_builder import generate_exam_from_file
+
+exam = generate_exam_from_file(
+    file_path="path/to/your/medical_content.md",
+    total_questions=20,
+    difficulty="mixed",
+    language="ru"
+)
+```
+
+### Save and Load Exams
+```python
+from app.core.exam_builder import save_exam, load_exam
+
+path = save_exam(exam)
+loaded_exam = load_exam(path)
+```
+
+### RAG Integration Pattern
+```python
+from app.core.exam_builder import generate_question
+
+def generate_questions_from_rag(query, retrieved_snippets, num_questions=5):
+    questions = []
+    for snippet in retrieved_snippets[:num_questions]:
+        question = generate_question(
+            content=snippet,
+            question_type="single_choice",
+            difficulty="medium",
+            provider="openai",
+            language="ru"
+        )
+        questions.append(question)
+    return questions
+```
+
 ## Frontend Architecture
 
 The web UI has been completely refactored into a clean, modular architecture:
@@ -179,9 +259,6 @@ The web UI has been completely refactored into a clean, modular architecture:
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for complete architecture documentation.
 
 ## 📚 Documentation
-
-**Getting Started**:
-- [Quick Start Guide](docs/QUICK_START.md) - 5-minute setup
 
 **Architecture & Development**:
 - [Architecture](docs/ARCHITECTURE.md) - System architecture and design
