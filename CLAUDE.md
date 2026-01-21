@@ -86,7 +86,7 @@ pytest --cov=app --cov-report=html tests/
     yandex_client.py     # YandexGPT API wrapper
     model_answer_tester.py  # Model answer evaluation
   /utils
-    file_utils.py        # File operations with path safety
+    path.py              # File operations with path safety
 /static                   # Frontend (modular architecture)
   index.html             # 170 lines - Clean HTML structure
   /css
@@ -109,19 +109,18 @@ pytest --cov=app --cov-report=html tests/
     /features            # Gherkin .feature files
     /steps               # Step definitions
 /docs                     # Documentation
-  ARCHITECTURE.md        # System architecture
-  SOLUTION.md            # API reference and flows
+  ARCHITECTURE.md        # System architecture, API reference, frontend design
   PLAN.md                # Development roadmap
-  FRONTEND.md            # Modular UI architecture (NEW)
-  QUICK_START.md         # 5-minute setup guide
-  SCRIPTS_GUIDE.md       # Tool and script documentation
-  EVALUATION.md          # Evaluation workflows
+  CONTRIBUTING.md        # Contribution guidelines
+  SECURITY.md            # Security policy
+  CHANGELOG.md           # Version history
+  AUDIT_REPORT.md        # Project audit
 /examples
   /notebooks             # Jupyter-friendly examples
     01_question_generation.py
     02_model_evaluation.py
-  config.example.yaml    # Example configuration
-  medical_content.md     # Sample medical content
+  complete_workflow.py   # End-to-end example script
+  test_open_ended_api.sh # API testing script
 /scripts
   evaluate_models.py     # Question generation benchmarking
   test_model_answers.py  # Model answer evaluation CLI
@@ -162,7 +161,7 @@ pytest --cov=app --cov-report=html tests/
 - **No alert() calls**: All feedback through consistent UI components
 - **Error Mapping**: HTTP status codes → user-friendly messages (413 → "File too large. Maximum size is 10MB.")
 
-See [docs/FRONTEND.md](docs/FRONTEND.md) for complete architecture documentation.
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for complete architecture documentation.
 
 ### API Contracts
 
@@ -263,7 +262,7 @@ Environment variables (.env):
 - **MD5 Usage**: All hashlib.md5 calls use `usedforsecurity=False` flag
 - Sanitize user inputs in config parsing
 - Security tests in tests/unit/test_security.py verify all protections
-- See [SECURITY.md](SECURITY.md) for complete security policy and audit results
+- See [docs/SECURITY.md](docs/SECURITY.md) for complete security policy and audit results
 
 ## Medical Content Context
 

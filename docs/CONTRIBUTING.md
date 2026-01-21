@@ -269,7 +269,7 @@ Fixes #21"
 # Documentation
 git commit -m "docs: update README with new frontend architecture
 
-Added frontend architecture section linking to docs/FRONTEND.md.
+Added frontend architecture section linking to docs/ARCHITECTURE.md.
 Updated installation instructions."
 
 # Security
@@ -376,25 +376,7 @@ Other approaches considered?
 
 ## Project Structure
 
-```
-llm_tester/
-├── app/
-│   ├── api/              # REST endpoints
-│   ├── core/             # Business logic
-│   ├── models/           # Pydantic schemas
-│   ├── services/         # External services
-│   └── utils/            # Utilities
-├── static/
-│   ├── css/              # Stylesheets
-│   └── js/               # JavaScript modules
-├── tests/
-│   ├── unit/             # Unit tests
-│   ├── integration/      # Integration tests
-│   └── bdd/              # BDD tests
-├── docs/                 # Documentation
-├── examples/             # Example files
-└── scripts/              # Utility scripts
-```
+See `README.md` for the canonical tree and `docs/ARCHITECTURE.md` for component-level details.
 
 ## Security
 
@@ -429,12 +411,9 @@ See [SECURITY.md](SECURITY.md) for more details.
 
 ### Documentation Files
 
-- **README.md**: Project overview and quick start
-- **CLAUDE.md**: Development guidelines
-- **docs/FRONTEND.md**: Frontend architecture
-- **docs/ARCHITECTURE.md**: System architecture
-- **SECURITY.md**: Security policy
-- **CHANGELOG.md**: Version history
+Start with `README.md`, then use `docs/ARCHITECTURE.md` (architecture + API + frontend),
+`docs/PLAN.md` (roadmap), `docs/SECURITY.md` (security policy), and
+`docs/CHANGELOG.md` (history).
 
 ## Getting Help
 

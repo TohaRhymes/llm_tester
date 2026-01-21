@@ -14,12 +14,12 @@ Usage:
 """
 import argparse
 import json
-import sys
-from pathlib import Path
 from typing import List, Dict
 
+from scripts._utils import ensure_repo_root_on_path, collect_exam_files
+
 # Add parent directory to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent))
+ensure_repo_root_on_path(__file__)
 
 from app.services.model_answer_tester import ModelAnswerTester, ModelTestResult
 from app.config import settings
@@ -152,15 +152,10 @@ def main():
     tester = ModelAnswerTester()
 
     # Get exam(s)
-    exam_files = []
-    if args.exam:
-        exam_files = [args.exam]
-    else:
-        exam_dir = Path(args.exam_dir)
-        exam_files = list(exam_dir.glob("exam_*.json"))
-        if not exam_files:
-            print(f"No exam files found in {args.exam_dir}")
-            return
+    exam_files = collect_exam_files(args.exam, args.exam_dir)
+    if not exam_files and args.exam_dir:
+        print(f"No exam files found in {args.exam_dir}")
+        return
 
     # Process each exam
     for exam_file in exam_files:

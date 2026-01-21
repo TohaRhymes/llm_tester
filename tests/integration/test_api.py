@@ -2,14 +2,16 @@
 Integration tests for FastAPI endpoints.
 """
 import json
-import pytest
 from pathlib import Path
-from fastapi.testclient import TestClient
-from app.main import app
-from app.models.schemas import Exam, ExamConfig, Question
-from app.config import settings
 
-client = TestClient(app)
+import pytest
+
+from app.api import files as files_api
+from app.config import settings
+from app.models.schemas import Exam, ExamConfig, Question
+from tests.utils import SyncASGIClient
+
+client = SyncASGIClient()
 
 
 class TestHealthEndpoint:
@@ -167,9 +169,9 @@ Paracetamol 500mg every 6 hours for fever reduction.
 Rest and hydration are important for recovery.
 """,
             "config": {
-                "total_questions": 3,
-                "single_choice_ratio": 0.7,
-                "multiple_choice_ratio": 0.3,
+                "single_choice_count": 2,
+                "multiple_choice_count": 1,
+                "open_ended_count": 0,
                 "provider": "local"
             }
         }
@@ -202,6 +204,68 @@ Rest and hydration are important for recovery.
         response = client.post("/api/generate", json=request_data)
         # Pydantic validation returns 422 for empty string
         assert response.status_code == 422
+
+
+class TestFilesEndpoints:
+    """Tests for file upload and listing endpoints."""
+
+    def test_upload_list_and_read_file(self, tmp_path, monkeypatch):
+        """Upload a file and then list and read it back."""
+        monkeypatch.setattr(files_api, "UPLOAD_DIR", tmp_path)
+        tmp_path.mkdir(parents=True, exist_ok=True)
+
+        content = b"# Title\n\nBody"
+        response = client.post(
+            "/api/upload",
+            files={"file": ("example.md", content, "text/markdown")}
+        )
+        assert response.status_code == 200
+        assert response.json()["filename"] == "example.md"
+
+        response = client.get("/api/files")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["count"] == 1
+        assert data["files"][0]["filename"] == "example.md"
+
+        response = client.get("/api/files/example.md")
+        assert response.status_code == 200
+        assert response.json()["content"] == content.decode("utf-8")
+
+    def test_upload_rejects_non_markdown(self, tmp_path, monkeypatch):
+        """Reject non-markdown uploads."""
+        monkeypatch.setattr(files_api, "UPLOAD_DIR", tmp_path)
+        tmp_path.mkdir(parents=True, exist_ok=True)
+
+        response = client.post(
+            "/api/upload",
+            files={"file": ("example.txt", b"plain", "text/plain")}
+        )
+        assert response.status_code == 400
+
+
+class TestExamsEndpoints:
+    """Tests for exam listing endpoints."""
+
+    def test_list_and_get_exam(self, tmp_path, monkeypatch):
+        """List exams and fetch a specific exam by ID."""
+        monkeypatch.setattr(settings, "output_dir", str(tmp_path))
+        exam_path = tmp_path / "exam_abc.json"
+        with open(exam_path, "w", encoding="utf-8") as f:
+            json.dump(
+                {"exam_id": "abc", "questions": [], "config_used": {}},
+                f
+            )
+
+        response = client.get("/api/exams")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["total"] == 1
+        assert data["exams"][0]["exam_id"] == "abc"
+
+        response = client.get("/api/exams/abc")
+        assert response.status_code == 200
+        assert response.json()["exam_id"] == "abc"
 
 
 class TestOpenAPISchema:

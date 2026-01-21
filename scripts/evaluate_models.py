@@ -3,7 +3,7 @@
 Script to evaluate and compare different LLM models for question generation and grading.
 
 Usage:
-    python scripts/evaluate_models.py --models gpt-4o-mini,gpt-4o --content examples/medical_content.md
+    python scripts/evaluate_models.py --models gpt-4o-mini,gpt-4o --content docs/examples/sample_data/sample_medical.md
 """
 import argparse
 import json
@@ -11,6 +11,10 @@ import time
 from datetime import datetime
 from pathlib import Path
 from typing import List, Dict, Any, Optional
+
+from scripts._utils import ensure_repo_root_on_path
+
+ensure_repo_root_on_path(__file__)
 
 from app.core.parser import MarkdownParser
 from app.core.generator import QuestionGenerator
@@ -22,7 +26,6 @@ from app.core.evaluator import (
     EvaluationReport
 )
 from app.models.schemas import ExamConfig, GradeRequest, StudentAnswer
-from app.services.openai_client import OpenAIClient
 from app.config import settings
 
 
@@ -232,7 +235,7 @@ def main():
     parser.add_argument(
         "--content",
         type=str,
-        default="examples/medical_content.md",
+        default="docs/examples/sample_data/sample_medical.md",
         help="Path to markdown content file"
     )
     parser.add_argument(

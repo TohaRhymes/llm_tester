@@ -4,10 +4,11 @@ BDD step definitions for grading functionality.
 import json
 from pathlib import Path
 from behave import given, when, then
-from fastapi.testclient import TestClient
-from app.main import app
 from app.models.schemas import Exam, ExamConfig, Question
 from app.config import settings
+from tests.utils import SyncASGIClient
+
+client = SyncASGIClient()
 
 
 @given('a test exam with {num:d} questions exists')
@@ -110,7 +111,6 @@ def step_create_subset_answers(context, answered, total):
 @when('I submit answers for grading')
 def step_submit_answers_for_grading(context):
     """Submit answers to grading endpoint."""
-    client = TestClient(app)
     request_data = {
         "exam_id": context.exam_id,
         "answers": context.answers
@@ -127,7 +127,6 @@ def step_submit_with_partial_credit(context):
 @when('I submit answers for the non-existent exam')
 def step_submit_for_nonexistent_exam(context):
     """Submit answers for exam that doesn't exist."""
-    client = TestClient(app)
     request_data = {
         "exam_id": context.exam_id,
         "answers": [{"question_id": "q1", "choice": [0]}]

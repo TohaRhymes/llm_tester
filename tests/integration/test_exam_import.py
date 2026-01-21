@@ -12,6 +12,7 @@ from app.models.schemas import Exam
 @pytest.mark.asyncio
 async def test_import_exam_round_trip(tmp_path):
     # Point outputs to temp dir
+    original_output_dir = settings.output_dir
     settings.output_dir = str(tmp_path)
     payload = {
         "exam_id": "imported-1",
@@ -33,13 +34,16 @@ async def test_import_exam_round_trip(tmp_path):
         ],
     }
 
-    exam = Exam(**payload)
-    saved = await import_exam(exam)
-    assert saved.exam_id == exam.exam_id
+    try:
+        exam = Exam(**payload)
+        saved = await import_exam(exam)
+        assert saved.exam_id == exam.exam_id
 
-    exam_file = Path(settings.output_dir) / f"exam_{payload['exam_id']}.json"
-    assert exam_file.exists()
+        exam_file = Path(settings.output_dir) / f"exam_{payload['exam_id']}.json"
+        assert exam_file.exists()
 
-    with open(exam_file, "r", encoding="utf-8") as f:
-        stored = json.load(f)
-    assert stored["exam_id"] == exam.exam_id
+        with open(exam_file, "r", encoding="utf-8") as f:
+            stored = json.load(f)
+        assert stored["exam_id"] == exam.exam_id
+    finally:
+        settings.output_dir = original_output_dir
