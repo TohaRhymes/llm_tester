@@ -102,10 +102,31 @@ header p { opacity: 0.9; }
     transition: all 0.3s;
     background: #fff;
     border: 1px solid #e4e7ee;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 .card:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.1); transform: translateY(-3px); }
-.card h3 { color: var(--blue); margin-bottom: 10px; }
-.card p { color: var(--muted); font-size: 14px; margin: 5px 0; }
+.card h3 {
+    color: var(--blue);
+    margin-bottom: 10px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+}
+.card p {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 5px 0;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+.card .btn {
+    margin-top: auto;
+    width: 100%;
+    text-align: center;
+}
 .exam-table {
     width: 100%;
     border-collapse: collapse;

@@ -77,6 +77,24 @@ function showAPIError(elementId, error) {
             message = 'Resource not found.';
         } else if (error.status === 413) {
             message = 'File too large. Maximum size is 10MB.';
+        } else if (error.status === 422) {
+            // Validation error - extract details from FastAPI response
+            if (error.response && error.response.detail) {
+                if (Array.isArray(error.response.detail)) {
+                    // FastAPI validation errors are arrays
+                    const errors = error.response.detail.map(err => {
+                        const field = err.loc ? err.loc.join('.') : 'unknown';
+                        return `${field}: ${err.msg}`;
+                    }).join('; ');
+                    message = `Validation error: ${errors}`;
+                } else if (typeof error.response.detail === 'string') {
+                    message = `Validation error: ${error.response.detail}`;
+                } else {
+                    message = 'Invalid request data. Please check your input.';
+                }
+            } else {
+                message = error.message || 'Invalid request data. Please check your input.';
+            }
         } else if (error.status === 429) {
             message = 'Too many requests. Please wait a moment and try again.';
         } else if (error.status >= 500) {

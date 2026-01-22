@@ -84,17 +84,17 @@
             <div class="count-control">
                 <label><strong>Single Choice Questions:</strong></label>
                 <input type="number" id="singleCount" min="0" max="100" value="10"
-                       oninput="updateTotal()" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #ddd;">
+                       style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #ddd;">
             </div>
             <div class="count-control">
                 <label><strong>Multiple Choice Questions:</strong></label>
                 <input type="number" id="multipleCount" min="0" max="100" value="6"
-                       oninput="updateTotal()" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #ddd;">
+                       style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #ddd;">
             </div>
             <div class="count-control">
                 <label><strong>Open-Ended Questions:</strong></label>
                 <input type="number" id="openCount" min="0" max="100" value="4"
-                       oninput="updateTotal()" style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #ddd;">
+                       style="width: 100%; padding: 10px; margin: 5px 0; border-radius: 6px; border: 1px solid #ddd;">
             </div>
             <div style="background-color: #e8f5e9; padding: 15px; border-radius: 6px; margin-top: 15px;">
                 <p style="margin: 0; font-size: 16px;">
@@ -105,7 +105,7 @@
                 </p>
             </div>
 
-            <button class="btn" onclick="generateExam()">🚀 Generate Exam</button>
+            <button class="btn" onclick="window.ExamManager.generateExam()">🚀 Generate Exam</button>
             <div id="generateResult"></div>
         </div>
 
@@ -113,22 +113,22 @@
         <div id="exams-tab" class="tab-content">
             <h2>Generated Exams</h2>
             <div style="display:flex; gap:10px; flex-wrap: wrap; align-items:center;">
-                <button class="btn" onclick="loadExams()">🔄 Refresh</button>
+                <button class="btn" onclick="window.ExamManager.loadExamList()">🔄 Refresh</button>
                 <label>Sort by:
-                    <select id="examSort" onchange="changeExamSort()" style="padding:8px; border-radius:6px; border:1px solid #ddd;">
+                    <select id="examSort" onchange="window.ExamManager.changeExamSort()" style="padding:8px; border-radius:6px; border:1px solid #ddd;">
                         <option value="created">Date</option>
                         <option value="size">Size</option>
                         <option value="exam_id">Name</option>
                     </select>
                 </label>
                 <label>Order:
-                    <select id="examOrder" onchange="changeExamSort()" style="padding:8px; border-radius:6px; border:1px solid #ddd;">
+                    <select id="examOrder" onchange="window.ExamManager.changeExamSort()" style="padding:8px; border-radius:6px; border:1px solid #ddd;">
                         <option value="desc">Desc</option>
                         <option value="asc">Asc</option>
                     </select>
                 </label>
                 <label>Page size:
-                    <input id="examPageSize" type="number" value="10" min="1" max="100" onchange="changeExamSort()" style="width:70px; padding:8px; border-radius:6px; border:1px solid #ddd;">
+                    <input id="examPageSize" type="number" value="10" min="1" max="100" onchange="window.ExamManager.changeExamSort()" style="width:70px; padding:8px; border-radius:6px; border:1px solid #ddd;">
                 </label>
             </div>
             <div class="card" style="margin: 16px 0;">
@@ -136,16 +136,16 @@
                 <p style="color: var(--muted); font-size: 14px;">Paste exam JSON to register it in storage.</p>
                 <textarea id="importText" class="text-answer" placeholder='{"exam_id":"ex-123",...}' style="min-height: 120px;"></textarea>
                 <div style="display:flex; gap:10px; margin-top:10px;">
-                    <button class="btn" onclick="importExam()">Import</button>
+                    <button class="btn" onclick="window.ExamManager.importExam()">Import</button>
                     <button class="btn secondary" onclick="document.getElementById('importText').value=''">Clear</button>
                 </div>
                 <div id="importResult"></div>
             </div>
             <div id="examList"></div>
             <div id="examPagination" style="margin-top:12px; display:flex; align-items:center; gap:10px;">
-                <button class="btn secondary" onclick="prevExamPage()">Prev</button>
+                <button class="btn secondary" onclick="window.ExamManager.prevExamPage()">Prev</button>
                 <span id="examPageInfo" style="color: var(--muted);"></span>
-                <button class="btn secondary" onclick="nextExamPage()">Next</button>
+                <button class="btn secondary" onclick="window.ExamManager.nextExamPage()">Next</button>
             </div>
         </div>
 
@@ -157,7 +157,7 @@
                 <select id="examSelect" style="width: 100%; padding: 10px; margin: 10px 0; border-radius: 6px; border: 1px solid #ddd;">
                     <option value="">Choose an exam...</option>
                 </select>
-                <button class="btn" onclick="loadExamForTest()">📖 Load Exam</button>
+                <button class="btn" onclick="window.TestTaker.loadExamForTest()">📖 Load Exam</button>
             </div>
             <div id="testContent"></div>
             <div id="testResult"></div>

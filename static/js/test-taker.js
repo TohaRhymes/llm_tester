@@ -20,11 +20,17 @@ async function loadExamForTest() {
 
     try {
         currentExam = await window.API.getExam(examId);
+        console.log('Loaded exam:', currentExam);
 
-        const testArea = document.getElementById('testArea');
-        if (!testArea) return;
+        const testContent = document.getElementById('testContent');
+        if (!testContent) {
+            console.error('testContent element not found');
+            window.UIUtils.showError(resultDiv, 'Test content area not found in page');
+            return;
+        }
 
-        testArea.innerHTML = `
+        console.log('Rendering exam with', currentExam.questions.length, 'questions');
+        testContent.innerHTML = `
             <h3>Exam: ${currentExam.exam_id}</h3>
             <p style="margin-bottom: 20px;"><strong>Total Questions:</strong> ${currentExam.questions.length}</p>
             <form id="testForm">
@@ -62,9 +68,19 @@ async function loadExamForTest() {
             </form>
         `;
 
-        document.getElementById('testForm').onsubmit = submitTest;
+        // Set up form submission
+        const testForm = document.getElementById('testForm');
+        if (testForm) {
+            testForm.onsubmit = submitTest;
+        } else {
+            console.error('testForm not found after render');
+        }
+
+        // Clear loading indicator
         document.getElementById(resultDiv).innerHTML = '';
+        console.log('Exam loaded successfully');
     } catch (error) {
+        console.error('Error loading exam:', error);
         window.UIUtils.showAPIError(resultDiv, error);
     }
 }

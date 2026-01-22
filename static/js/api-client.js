@@ -122,14 +122,14 @@ const API = {
     },
 
     /**
-     * Generate exam from file
-     * @param {Object} config - Exam configuration
+     * Generate exam from markdown content
+     * @param {Object} payload - Request payload with markdown_content and config
      * @returns {Promise<Object>} Generated exam
      */
-    async generateExam(config) {
+    async generateExam(payload) {
         return apiRequest('/api/generate', {
             method: 'POST',
-            body: JSON.stringify({ config })
+            body: JSON.stringify(payload)
         });
     },
 

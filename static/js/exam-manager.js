@@ -49,18 +49,7 @@ async function generateExam() {
         const difficulty = document.getElementById('difficulty')?.value || 'mixed';
         const language = document.getElementById('language')?.value || 'en';
         const provider = document.getElementById('provider')?.value || 'openai';
-
-        const config = {
-            input: { content: fileData.content },
-            generation: {
-                single_choice_count: singleCount,
-                multiple_choice_count: multipleCount,
-                open_ended_count: openCount,
-                difficulty,
-                language
-            },
-            provider
-        };
+        const modelName = document.getElementById('modelName')?.value?.trim() || null;
 
         // Validate config
         const validation = window.UIUtils.validateExamConfig({
@@ -74,8 +63,26 @@ async function generateExam() {
             return;
         }
 
+        // Build request payload matching API schema
+        const requestPayload = {
+            markdown_content: fileData.content,
+            config: {
+                single_choice_count: singleCount,
+                multiple_choice_count: multipleCount,
+                open_ended_count: openCount,
+                difficulty,
+                language,
+                provider
+            }
+        };
+
+        // Add optional model name if provided
+        if (modelName) {
+            requestPayload.config.model_name = modelName;
+        }
+
         // Generate exam
-        const exam = await window.API.generateExam(config);
+        const exam = await window.API.generateExam(requestPayload);
 
         window.UIUtils.showSuccess(
             resultDiv,
@@ -109,17 +116,17 @@ async function loadExamList() {
         };
 
         const examList = document.getElementById('examList');
-        const paginationInfo = document.getElementById('paginationInfo');
+        const examPageInfo = document.getElementById('examPageInfo');
 
         if (!data.exams || data.exams.length === 0) {
             examList.innerHTML = '<p style="text-align: center; color: #666;">No exams generated yet</p>';
-            if (paginationInfo) paginationInfo.innerHTML = '';
+            if (examPageInfo) examPageInfo.innerHTML = '';
             return;
         }
 
         // Update pagination info
-        if (paginationInfo) {
-            paginationInfo.innerHTML = `
+        if (examPageInfo) {
+            examPageInfo.innerHTML = `
                 Page ${examMeta.page} of ${examMeta.total_pages} (${examMeta.total} total exams)
             `;
         }
@@ -245,6 +252,37 @@ async function populateExamSelect() {
     }
 }
 
+/**
+ * Imports exam from JSON
+ */
+async function importExam() {
+    const importText = document.getElementById('importText')?.value.trim();
+    if (!importText) {
+        window.UIUtils.showError('importResult', 'Please paste exam JSON');
+        return;
+    }
+
+    const resultDiv = 'importResult';
+    window.UIUtils.showLoading(resultDiv, 'Importing exam...');
+
+    try {
+        const examData = JSON.parse(importText);
+        await window.API.importExam(examData);
+
+        window.UIUtils.showSuccess(resultDiv, `Exam ${examData.exam_id} imported successfully!`);
+
+        // Clear input and refresh list
+        document.getElementById('importText').value = '';
+        await loadExamList();
+    } catch (error) {
+        if (error instanceof SyntaxError) {
+            window.UIUtils.showError(resultDiv, 'Invalid JSON format');
+        } else {
+            window.UIUtils.showAPIError(resultDiv, error);
+        }
+    }
+}
+
 // Export functions
 window.ExamManager = {
     updateQuestionTotal,
@@ -254,5 +292,6 @@ window.ExamManager = {
     changeExamSort,
     nextExamPage,
     prevExamPage,
-    populateExamSelect
+    populateExamSelect,
+    importExam
 };
