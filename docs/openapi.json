@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.0",
+  "openapi": "3.1.0",
   "info": {
     "title": "LLM Test Generator",
     "description": "Generate and grade educational tests using LLMs",
@@ -120,15 +120,33 @@
         "summary": "Upload File",
         "description": "Upload a Markdown file for exam generation.\n\nArgs:\n    file: Markdown file (.md)\n\nReturns:\n    File information and path",
         "operationId": "upload_file_api_upload_post",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Name"
+            }
+          }
+        ],
         "requestBody": {
+          "required": true,
           "content": {
             "multipart/form-data": {
               "schema": {
                 "$ref": "#/components/schemas/Body_upload_file_api_upload_post"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
@@ -158,7 +176,7 @@
           "files"
         ],
         "summary": "List Files",
-        "description": "List all uploaded Markdown files.\n\nReturns:\n    List of uploaded files with metadata",
+        "description": "List all uploaded Markdown and PDF files.\n\nReturns:\n    List of uploaded files with metadata",
         "operationId": "list_files_api_files_get",
         "responses": {
           "200": {
@@ -413,11 +431,7 @@
             "description": "List of questions"
           },
           "config_used": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ExamConfig"
-              }
-            ],
+            "$ref": "#/components/schemas/ExamConfig",
             "description": "Configuration used for generation"
           }
         },
@@ -447,11 +461,7 @@
             "description": "List of questions"
           },
           "config_used": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ExamConfig"
-              }
-            ],
+            "$ref": "#/components/schemas/ExamConfig",
             "description": "Configuration used for generation"
           }
         },
@@ -593,6 +603,38 @@
             ],
             "title": "Model Name",
             "description": "Specific model to use for the provider"
+          },
+          "prompt_variant": {
+            "type": "string",
+            "title": "Prompt Variant",
+            "description": "Prompt template variant for generation",
+            "default": "default"
+          },
+          "rag_enabled": {
+            "type": "boolean",
+            "title": "Rag Enabled",
+            "description": "Enable retrieval-augmented generation",
+            "default": false
+          },
+          "rag_top_k": {
+            "type": "integer",
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Rag Top K",
+            "description": "Top-k sections to retrieve when RAG is enabled",
+            "default": 3
+          },
+          "rag_query": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rag Query",
+            "description": "Optional query for RAG retrieval"
           }
         },
         "type": "object",
@@ -659,11 +701,7 @@
             "description": "Exam identifier"
           },
           "summary": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/GradeSummary"
-              }
-            ],
+            "$ref": "#/components/schemas/GradeSummary",
             "description": "Summary statistics"
           },
           "per_question": {
@@ -838,11 +876,7 @@
             "description": "Source material references"
           },
           "meta": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/QuestionMeta"
-              }
-            ],
+            "$ref": "#/components/schemas/QuestionMeta",
             "description": "Question metadata"
           }
         },
@@ -954,6 +988,36 @@
             ],
             "title": "Feedback",
             "description": "Detailed feedback (for open_ended)"
+          },
+          "rubric_scores": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rubric Scores",
+            "description": "Rubric scores (for open_ended)"
+          },
+          "metrics": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "number"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metrics",
+            "description": "Open-ended grading metrics"
           }
         },
         "type": "object",

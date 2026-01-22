@@ -412,9 +412,10 @@ See [SECURITY.md](SECURITY.md) for more details.
 ### Documentation Files
 
 Start with `README.md`, then use `docs/ARCHITECTURE.md` (architecture + API + frontend),
-`docs/PROJECT_STATUS.md` (status snapshot), `docs/RESEARCH_RESULTS.md` (evaluation tables),
-`docs/RESEARCH_DECK.md` (presentation summary), `docs/PLAN.md` (roadmap),
+`docs/PROJECT_STATUS.md` (status, research results, and roadmap),
+`docs/RESEARCH_DECK.md` (research presentation in Russian),
 `docs/SECURITY.md` (security policy), and `docs/CHANGELOG.md` (history).
+Historical documents are in `docs/archive/`.
 
 ## Getting Help
 

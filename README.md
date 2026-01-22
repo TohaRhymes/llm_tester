@@ -90,14 +90,12 @@ examples/notebooks/        # Jupyter-friendly examples
 tests/              # unit/integration/BDD suites
 docs/
   ARCHITECTURE.md        # System architecture, API reference, frontend design
-  PLAN.md                # Development roadmap
+  PROJECT_STATUS.md      # Project status, results, and roadmap
   CONTRIBUTING.md        # TDD/BDD workflow and guidelines
   SECURITY.md            # Security policy
   CHANGELOG.md           # Version history and migration guides
-  PROJECT_STATUS.md      # Current status + roadmap snapshot
-  RESEARCH_RESULTS.md    # Research results and evaluation tables
-  RESEARCH_DECK.md       # Presentation-style summary
-  AUDIT_REPORT.md        # Archived audit report (historical)
+  RESEARCH_DECK.md       # Research presentation (Russian)
+  archive/               # Historical documents (PLAN.md, RESEARCH_RESULTS.md, AUDIT_REPORT.md)
 ```
 
 ## Testing and Evaluation
@@ -265,10 +263,8 @@ See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for complete architecture docum
 
 **Architecture & Development**:
 - [Architecture](docs/ARCHITECTURE.md) - System architecture and design
-- [Project Status](docs/PROJECT_STATUS.md) - Current status and roadmap snapshot
-- [Research Results](docs/RESEARCH_RESULTS.md) - Evaluation tables and notes
-- [Research Deck](docs/RESEARCH_DECK.md) - Presentation-ready summary
-- [Implementation Plan](docs/PLAN.md) - Development roadmap
+- [Project Status](docs/PROJECT_STATUS.md) - Project status, research results, and roadmap
+- [Research Deck](docs/RESEARCH_DECK.md) - Research presentation (Russian)
 
 **Contributing & Security**:
 - [Contributing Guide](docs/CONTRIBUTING.md) - TDD/BDD workflow and guidelines
